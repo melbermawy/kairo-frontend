@@ -151,165 +151,185 @@ for the hero demo, ui will talk to a **local stub api layer** rather than real d
       ...
     stubStore.ts           // in-memory state manager
     stubApiClient.ts       // implements ApiClient interface via stubStore
-    fakeLlm.ts             // canned chat + “generated” content responses
+    fakeLlm.ts             // canned chat + "generated" content responses
   api/
     client.ts              // exports ApiClient; in demo it re-exports stubApiClient
   config/
     demoMode.ts            // flag to switch mode later
+```
 
+---
 
-⸻
+## 4. stubbed behaviors by object
 
-4. stubbed behaviors by object
+we don't need to list every endpoint here; just the critical flows and behaviors.
 
-we don’t need to list every endpoint here; just the critical flows and behaviors.
+### 4.1 brands, personas, pillars
 
-4.1 brands, personas, pillars
-	•	GET /brands
-	•	returns all demo brands (subset from brands.json).
-	•	GET /brands/:id/personas
-	•	GET /brands/:id/pillars
+- `GET /brands`
+  - returns all demo brands (subset from brands.json).
+- `GET /brands/:id/personas`
+- `GET /brands/:id/pillars`
 
-behavior
-	•	pure read; no writes in demo.
-	•	selecting brand updates currentBrandId in stubStore.
+**behavior**
 
-4.2 opportunities
-	•	GET /brands/:id/opportunities?scope=today
-	•	returns OpportunityBatch (CO-10) for “today” + its cards.
-	•	stub store pre-picks a “today” date (e.g. 2025-02-01).
-	•	GET /opportunities/:id
-	•	returns OpportunityCard (CO-09) with hydrated GlobalSourceDoc (CO-08) snippets.
-	•	POST /opportunities/:id/actions
-	•	actions accepted:
-	•	pin, snooze, ignore.
-	•	stub behavior:
-	•	update local card attributes (pinned, ignored, etc.).
-	•	optionally log a FeedbackEvent (CO-18) of type opportunity_action.
+- pure read; no writes in demo.
+- selecting brand updates `currentBrandId` in stubStore.
 
-4.3 content packages & variants
-	•	POST /content-packages
-	•	body: { opportunityId } or { manualTopic }.
-	•	stub behavior:
-	•	look up OpportunityCard.
-	•	pick a persona, pillar, PatternTemplate based on simple rules.
-	•	generate a new ContentPackage (CO-14), CoreArgument (CO-15), ChannelPlan (CO-16), and several ContentVariant (CO-17) instances from fixtures or via fakeLlm.
-	•	insert into store and return hydrated package.
-	•	GET /content-packages/:id
-	•	return full package with nested core argument, plans, variants.
-	•	PATCH /content-variants/:id
-	•	allow:
-	•	updating body,
-	•	updating status (draft → edited → approved).
-	•	stub just mutates in-memory object.
+### 4.2 opportunities
 
-4.4 scheduling / publishing
-	•	POST /publishing-jobs
-	•	input: { contentVariantId, scheduledAt }.
-	•	stub:
-	•	create PublishingJob (CO-22) with status = "pending".
-	•	simulate state change to "scheduled" after short timeout.
-	•	GET /publishing-jobs?brandId=...
-	•	return scheduled + historical jobs for calendar / list view.
+- `GET /brands/:id/opportunities?scope=today`
+  - returns **OpportunityBatch (CO-10)** for "today" + its cards.
+  - stub store pre-picks a "today" date (e.g. 2025-02-01).
+- `GET /opportunities/:id`
+  - returns **OpportunityCard (CO-09)** with hydrated **GlobalSourceDoc (CO-08)** snippets.
+- `POST /opportunities/:id/actions`
+  - actions accepted: `pin`, `snooze`, `ignore`.
+  - stub behavior:
+    - update local card attributes (pinned, ignored, etc.).
+    - optionally log a **FeedbackEvent (CO-18)** of type `opportunity_action`.
+
+### 4.3 content packages & variants
+
+- `POST /content-packages`
+  - body: `{ opportunityId }` or `{ manualTopic }`.
+  - stub behavior:
+    - look up OpportunityCard.
+    - pick a persona, pillar, PatternTemplate based on simple rules.
+    - generate a new **ContentPackage (CO-14)**, **CoreArgument (CO-15)**, **ChannelPlan (CO-16)**, and several **ContentVariant (CO-17)** instances from fixtures or via fakeLlm.
+    - insert into store and return hydrated package.
+- `GET /content-packages/:id`
+  - return full package with nested core argument, plans, variants.
+- `PATCH /content-variants/:id`
+  - allow:
+    - updating body,
+    - updating status (`draft` → `edited` → `approved`).
+  - stub just mutates in-memory object.
+
+### 4.4 scheduling / publishing
+
+- `POST /publishing-jobs`
+  - input: `{ contentVariantId, scheduledAt }`.
+  - stub:
+    - create **PublishingJob (CO-22)** with status = `"pending"`.
+    - simulate state change to `"scheduled"` after short timeout.
+- `GET /publishing-jobs?brandId=...`
+  - return scheduled + historical jobs for calendar / list view.
 
 no actual network calls to linkedin/x in demo.
 
-4.5 feedback & learning
-	•	POST /feedback-events
-	•	payload includes:
-	•	feedback_type (variant_rating, save_as_example, never_again, etc.)
-	•	references (variant id, pattern id, opportunity id).
-	•	stub:
-	•	append FeedbackEvent (CO-18) to store,
-	•	immediately update BrandPreferences (CO-19):
-	•	pattern_weights,
-	•	tone_bias_overrides,
-	•	maybe persona_pillar_bias.
-	•	GET /brands/:id/preferences
-	•	returns current BrandPreferences (CO-19).
+### 4.5 feedback & learning
+
+- `POST /feedback-events`
+  - payload includes:
+    - `feedback_type` (`variant_rating`, `save_as_example`, `never_again`, etc.)
+    - references (variant id, pattern id, opportunity id).
+  - stub:
+    - append **FeedbackEvent (CO-18)** to store,
+    - immediately update **BrandPreferences (CO-19)**:
+      - `pattern_weights`,
+      - `tone_bias_overrides`,
+      - maybe `persona_pillar_bias`.
+- `GET /brands/:id/preferences`
+  - returns current **BrandPreferences (CO-19)**.
 
 this makes learning visibly real in the demo:
-	•	user marks pattern as “never again” → weight drops → later recommendations in the same session show decreased use.
 
-4.6 patterns
-	•	GET /brands/:id/pattern-templates
-	•	returns list of PatternTemplate (CO-12) with usage stats from PatternUsage (CO-13).
-	•	GET /patterns/usage?brandId=...
-	•	returns aggregated metrics for analytics panel.
+- user marks pattern as "never again" → weight drops → later recommendations in the same session show decreased use.
+
+### 4.6 patterns
+
+- `GET /brands/:id/pattern-templates`
+  - returns list of **PatternTemplate (CO-12)** with usage stats from **PatternUsage (CO-13)**.
+- `GET /patterns/usage?brandId=...`
+  - returns aggregated metrics for analytics panel.
 
 no creation / editing in demo; they are seeded.
 
-4.7 global chat
-	•	POST /chat
-	•	payload:
-	•	brandId
-	•	optional opportunityId, contentPackageId, contentVariantId
-	•	message.
-	•	behavior in fakeLlm.ts:
-	•	inspect context:
-	•	if variant id present → respond like “editor” giving notes.
-	•	if opportunity id present → respond like strategist proposing angles.
-	•	else → respond with generic but on-brand suggestions using BrandBrainSnapshot (CO-05) + random BrandMemoryFragment (CO-07).
-	•	responses chosen from a small set of pre-written templates with interpolated data (persona, pillar, opportunity angle, etc.).
+### 4.7 global chat
+
+- `POST /chat`
+  - payload:
+    - `brandId`
+    - optional `opportunityId`, `contentPackageId`, `contentVariantId`
+    - `message`.
+  - behavior in `fakeLlm.ts`:
+    - inspect context:
+      - if variant id present → respond like "editor" giving notes.
+      - if opportunity id present → respond like strategist proposing angles.
+      - else → respond with generic but on-brand suggestions using **BrandBrainSnapshot (CO-05)** + random **BrandMemoryFragment (CO-07)**.
+    - responses chosen from a small set of pre-written templates with interpolated data (persona, pillar, opportunity angle, etc.).
 
 no real llm calls in demo; all responses deterministic per input pattern.
 
-⸻
+---
 
-5. fake data principles
-	1.	everything must be internally consistent
-	•	opportunities must reference real personas/pillars/source docs.
-	•	content packages must reference real opportunities and brand brain snapshots.
-	•	feedback events must reference real variants/patterns.
-	2.	realistic but not overwhelming
-	•	enough cards/variants to scroll, but not hundreds.
-	•	small differences in scores, dates, engagement metrics so charts and lists look non-random.
-	3.	safe content
-	•	no real companies or people.
-	•	invented brands, competitors, and metrics.
-	•	no political/religious/medical claims that would be awkward in a demo.
-	4.	deterministic seeding
-	•	fixtures should be static json so the demo looks identical each time it loads.
-	•	stateful actions change only in memory; reload resets to baseline.
+## 5. fake data principles
 
-⸻
+1. **everything must be internally consistent**
+   - opportunities must reference real personas/pillars/source docs.
+   - content packages must reference real opportunities and brand brain snapshots.
+   - feedback events must reference real variants/patterns.
 
-6. swapping stubs for real backend later
+2. **realistic but not overwhelming**
+   - enough cards/variants to scroll, but not hundreds.
+   - small differences in scores, dates, engagement metrics so charts and lists look non-random.
+
+3. **safe content**
+   - no real companies or people.
+   - invented brands, competitors, and metrics.
+   - no political/religious/medical claims that would be awkward in a demo.
+
+4. **deterministic seeding**
+   - fixtures should be static json so the demo looks identical each time it loads.
+   - stateful actions change only in memory; reload resets to baseline.
+
+---
+
+## 6. swapping stubs for real backend later
 
 we want the hero demo wiring to survive real backend adoption.
 
-rules:
-	1.	single ApiClient interface
-	•	/src/api/client.ts exports an object with methods:
-	•	getBrands, getOpportunities, createContentPackage, etc.
-	•	stub client implements it now; real client will implement the same shape later.
-	2.	no direct fixture imports in ui components
-	•	components never read fixtures/*.json directly.
-	•	they only talk to the ApiClient.
-	3.	demo mode flag
-	•	config/demoMode.ts exposes a boolean.
-	•	when false, ApiClient will call real django endpoints.
-	4.	schema alignment
-	•	stub types should match canonical objects (CO-01..CO-22).
-	•	django serializers should be built from the same types later.
+**rules:**
 
-⸻
+1. **single ApiClient interface**
+   - `/src/api/client.ts` exports an object with methods:
+     - `getBrands`, `getOpportunities`, `createContentPackage`, etc.
+   - stub client implements it now; real client will implement the same shape later.
 
-7. minimal tasks to get demo working
+2. **no direct fixture imports in ui components**
+   - components never read `fixtures/*.json` directly.
+   - they only talk to the ApiClient.
 
-when we jump into ui work, “done enough” for hero demo means:
-	1.	create fixture jsons for:
-	•	brands, personas, pillars, brand brain snapshots,
-	•	opportunities + batches + source docs,
-	•	pattern templates + usage,
-	•	content packages + variants,
-	•	brand preferences, feedback, publishing jobs.
-	2.	implement stubStore.ts with:
-	•	in-memory state and simple update helpers.
-	3.	implement stubApiClient.ts with:
-	•	methods backing the flows listed in sections 3–4.
-	4.	implement fakeLlm.ts with:
-	•	a few canned chat responses & “generation” functions.
+3. **demo mode flag**
+   - `config/demoMode.ts` exposes a boolean.
+   - when false, ApiClient will call real django endpoints.
+
+4. **schema alignment**
+   - stub types should match canonical objects (CO-01..CO-22).
+   - django serializers should be built from the same types later.
+
+---
+
+## 7. minimal tasks to get demo working
+
+when we jump into ui work, "done enough" for hero demo means:
+
+1. **create fixture jsons for:**
+   - brands, personas, pillars, brand brain snapshots,
+   - opportunities + batches + source docs,
+   - pattern templates + usage,
+   - content packages + variants,
+   - brand preferences, feedback, publishing jobs.
+
+2. **implement stubStore.ts with:**
+   - in-memory state and simple update helpers.
+
+3. **implement stubApiClient.ts with:**
+   - methods backing the flows listed in sections 3–4.
+
+4. **implement fakeLlm.ts with:**
+   - a few canned chat responses & "generation" functions.
 
 after that, the ui can be built as if it were talking to a real backend.
 
