@@ -10,12 +10,12 @@ export const KCard = forwardRef<HTMLDivElement, KCardProps>(
       <div
         ref={ref}
         className={[
-          "bg-kairo-bg-elevated",
-          "rounded-[10px]",
+          "bg-kairo-surface-plain",
+          "rounded-(--kairo-radius-md)",
           "p-5",
           elevated
-            ? "shadow-card border border-kairo-border-soft/50"
-            : "border border-kairo-border-soft",
+            ? "shadow-soft"
+            : "border border-kairo-border-subtle",
           "transition-shadow duration-150",
           className,
         ].join(" ")}

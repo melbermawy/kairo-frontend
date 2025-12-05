@@ -1,21 +1,30 @@
 import { HTMLAttributes, forwardRef } from "react";
 
-type KTagVariant = "default" | "filled" | "outline" | "trend" | "evergreen" | "competitive" | "campaign" | "danger" | "muted";
+type KTagVariant =
+  | "default"
+  | "filled"
+  | "outline"
+  | "trend"
+  | "evergreen"
+  | "competitive"
+  | "campaign"
+  | "danger"
+  | "muted";
 
 interface KTagProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: KTagVariant;
 }
 
 const variantStyles: Record<KTagVariant, string> = {
-  default: "bg-kairo-primary-soft text-kairo-primary-deep",
-  filled: "bg-kairo-primary-soft text-kairo-primary-deep", // alias for default
-  outline: "bg-transparent border border-kairo-border-soft text-kairo-text-main",
-  trend: "bg-kairo-pill-trend-bg text-kairo-pill-trend-text",
-  evergreen: "bg-kairo-pill-evergreen-bg text-kairo-pill-evergreen-text",
-  competitive: "bg-kairo-pill-competitive-bg text-kairo-pill-competitive-text",
-  campaign: "bg-kairo-pill-campaign-bg text-kairo-pill-campaign-text",
-  danger: "bg-kairo-danger-soft text-kairo-danger",
-  muted: "bg-kairo-bg-rail text-kairo-text-muted",
+  default: "bg-kairo-aqua-50 text-kairo-aqua-600",
+  filled: "bg-kairo-aqua-50 text-kairo-aqua-600", // alias for default
+  outline: "bg-transparent border border-kairo-border-subtle text-kairo-ink-700",
+  trend: "bg-kairo-tag-trend-bg text-kairo-tag-trend-fg",
+  evergreen: "bg-kairo-tag-evergreen-bg text-kairo-tag-evergreen-fg",
+  competitive: "bg-kairo-tag-competitive-bg text-kairo-tag-competitive-fg",
+  campaign: "bg-kairo-tag-campaign-bg text-kairo-tag-campaign-fg",
+  danger: "bg-kairo-tag-low-score-bg text-kairo-tag-low-score-fg",
+  muted: "bg-kairo-sand-100 text-kairo-ink-500",
 };
 
 export const KTag = forwardRef<HTMLSpanElement, KTagProps>(
@@ -26,7 +35,7 @@ export const KTag = forwardRef<HTMLSpanElement, KTagProps>(
         className={[
           "inline-flex items-center",
           "px-2 py-0.5",
-          "rounded-[5px]",
+          "rounded-(--kairo-radius-pill)",
           "text-[11px] font-medium leading-tight",
           variantStyles[variant],
           className,

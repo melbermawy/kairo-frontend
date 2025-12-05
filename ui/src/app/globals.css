@@ -6,182 +6,156 @@
      Shallow crystal water, warm sand, bright sky
      ======================================== */
 
-  /* --- Surface Colors --- */
-  --kairo-bg-page: #FDFBF7;           /* Main page: warm cream white */
-  --kairo-bg-elevated: #FFFFFF;       /* Cards: pure white */
-  --kairo-bg-rail: #F5F1EB;           /* Sidebar: soft sandstone */
+  /* --- A. Brand Aqua (Primary) --- */
+  /* Shallow, bright water — not dark teal */
+  --kairo-color-aqua-50:  #E6FAFB;
+  --kairo-color-aqua-100: #C4F1F5;
+  --kairo-color-aqua-300: #5FD6E2;
+  --kairo-color-aqua-500: #1AB8C8;   /* Main brand primary */
+  --kairo-color-aqua-600: #1097A5;   /* Hover / active */
 
-  /* --- Brand / Accent Colors --- */
-  --kairo-primary: #4EC5D4;           /* Shallow aqua: main brand */
-  --kairo-primary-soft: #E5F6F8;      /* Very light aqua: hover/chips bg */
-  --kairo-primary-deep: #2A9DAD;      /* Deeper teal: top bar, hover */
-  --kairo-accent-coral: #E8A07A;      /* Soft coral: sparingly for warmth */
-  --kairo-accent-coral-soft: #FEF5F0; /* Very light coral bg */
+  /* --- B. Sand / Background --- */
+  --kairo-color-sand-25:  #FFFBF7;
+  --kairo-color-sand-50:  #FFF6ED;   /* Main app background */
+  --kairo-color-sand-100: #F7EBDC;   /* Subtle sidebar / card tint */
 
-  /* --- Text Colors --- */
-  --kairo-text-main: #2D3748;         /* Dark charcoal: primary text */
-  --kairo-text-muted: #718096;        /* Medium grey: secondary text */
-  --kairo-text-subtle: #A0AEC0;       /* Light grey: meta/labels */
-  --kairo-text-inverse: #FFFFFF;      /* White: on dark backgrounds */
+  /* --- C. Ink (Text) --- */
+  --kairo-color-ink-900: #152023;    /* Headings */
+  --kairo-color-ink-700: #374247;    /* Primary body text */
+  --kairo-color-ink-600: #4A5459;    /* Nav hover text */
+  --kairo-color-ink-500: #6B757A;    /* Secondary text / labels */
+  --kairo-color-ink-400: #8A9499;    /* Nav icons default */
+  --kairo-color-ink-300: #AAB3B7;    /* Muted meta / dividers */
 
-  /* --- Borders & Outlines --- */
-  --kairo-border-soft: #E8E4DE;       /* Low contrast: card borders */
-  --kairo-border-strong: #D4CEC4;     /* Higher contrast: dividers */
+  /* --- D. Surfaces and Borders --- */
+  --kairo-color-surface-plain:    #FFFFFF;
+  --kairo-color-surface-soft:     #FFFAF5;   /* Very light sand card */
+  --kairo-color-border-subtle:    #E4E1DA;
+  --kairo-color-border-strong:    #CFC8BC;
 
-  /* --- Status Pill Colors --- */
-  --kairo-pill-trend-bg: #E0F4F7;
-  --kairo-pill-trend-text: #1A7A8A;
-  --kairo-pill-evergreen-bg: #E6F4EA;
-  --kairo-pill-evergreen-text: #1D6F42;
-  --kairo-pill-competitive-bg: #FEF3E5;
-  --kairo-pill-competitive-text: #B5651D;
-  --kairo-pill-campaign-bg: #F3E8FF;
-  --kairo-pill-campaign-text: #6B21A8;
+  /* --- E. Semantic Tags (Today page) --- */
+  --kairo-color-tag-trend-bg:       #E6FAFB;
+  --kairo-color-tag-trend-fg:       #0E8D9A;
+  --kairo-color-tag-evergreen-bg:   #E7F7EB;
+  --kairo-color-tag-evergreen-fg:   #1D8A47;
+  --kairo-color-tag-competitive-bg: #FFF3E0;
+  --kairo-color-tag-competitive-fg: #C76A1F;
+  --kairo-color-tag-campaign-bg:    #F3E8FF;
+  --kairo-color-tag-campaign-fg:    #6B21A8;
+  --kairo-color-tag-low-score-bg:   #FDEBEC;
+  --kairo-color-tag-low-score-fg:   #C0343C;
 
-  /* --- Feedback Colors --- */
-  --kairo-success: #38A169;
-  --kairo-success-soft: #E6F4EC;
-  --kairo-danger: #E25B5B;
-  --kairo-danger-soft: #FDF0F0;
-  --kairo-warning: #DD9E4C;
-  --kairo-warning-soft: #FDF6EC;
-
-  /* --- Shadows --- */
-  --kairo-shadow-soft: 0 1px 3px rgba(45, 55, 72, 0.06), 0 1px 2px rgba(45, 55, 72, 0.04);
-  --kairo-shadow-card: 0 2px 8px rgba(45, 55, 72, 0.06), 0 1px 2px rgba(45, 55, 72, 0.04);
-  --kairo-shadow-elevated: 0 10px 25px rgba(45, 55, 72, 0.10), 0 4px 10px rgba(45, 55, 72, 0.05);
-
-  /* --- Radii --- */
-  --kairo-radius-sm: 6px;
-  --kairo-radius-md: 10px;
-  --kairo-radius-lg: 14px;
-  --kairo-radius-full: 9999px;
-
-  /* --- Spacing Scale --- */
-  --kairo-space-1: 4px;
-  --kairo-space-2: 8px;
-  --kairo-space-3: 12px;
-  --kairo-space-4: 16px;
-  --kairo-space-5: 24px;
-  --kairo-space-6: 32px;
-  --kairo-space-8: 48px;
-  --kairo-space-10: 64px;
+  /* --- F. State / Action Colors --- */
+  --kairo-color-action-primary-bg:       var(--kairo-color-aqua-500);
+  --kairo-color-action-primary-fg:       #FFFFFF;
+  --kairo-color-action-primary-hover-bg: var(--kairo-color-aqua-600);
+  --kairo-color-action-muted-bg:         #FFFFFF;
+  --kairo-color-action-muted-border:     var(--kairo-color-border-subtle);
+  --kairo-color-action-muted-fg:         var(--kairo-color-ink-700);
 
   /* --- Typography --- */
-  --kairo-font-family: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
-  --kairo-font-mono: "SF Mono", Monaco, "Cascadia Code", monospace;
+  --kairo-font-family-sans: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* Font sizes */
-  --kairo-font-size-xs: 0.6875rem;    /* 11px */
-  --kairo-font-size-sm: 0.8125rem;    /* 13px */
-  --kairo-font-size-md: 0.9375rem;    /* 15px */
-  --kairo-font-size-lg: 1.0625rem;    /* 17px */
-  --kairo-font-size-xl: 1.25rem;      /* 20px */
-  --kairo-font-size-2xl: 1.5rem;      /* 24px */
+  --kairo-font-size-xs:   11px;   /* Meta labels, pill text */
+  --kairo-font-size-sm:   13px;   /* Secondary text */
+  --kairo-font-size-md:   15px;   /* Main body text */
+  --kairo-font-size-lg:   18px;   /* Section headings, card titles */
+  --kairo-font-size-xl:   22px;   /* Page titles */
+  --kairo-font-size-2xl:  28px;   /* Hero / rarely used */
 
   /* Font weights */
-  --kairo-font-weight-regular: 400;
-  --kairo-font-weight-medium: 500;
+  --kairo-font-weight-regular:  400;
+  --kairo-font-weight-medium:   500;
   --kairo-font-weight-semibold: 600;
 
   /* Line heights */
-  --kairo-leading-tight: 1.25;
-  --kairo-leading-normal: 1.5;
-  --kairo-leading-relaxed: 1.65;
+  --kairo-line-height-tight:   1.2;
+  --kairo-line-height-normal:  1.4;
+  --kairo-line-height-relaxed: 1.6;
+
+  /* --- Radii --- */
+  --kairo-radius-xs:   4px;
+  --kairo-radius-sm:   6px;
+  --kairo-radius-md:   10px;    /* Main card radius */
+  --kairo-radius-lg:   16px;
+  --kairo-radius-pill: 999px;   /* Tags, pill buttons */
+
+  /* --- Shadows (light, airy) --- */
+  --kairo-shadow-none:     none;
+  --kairo-shadow-soft:     0 6px 18px rgba(12, 48, 66, 0.04);
+  --kairo-shadow-elevated: 0 12px 30px rgba(12, 48, 66, 0.08);
 
   /* --- Transitions --- */
-  --kairo-transition-fast: 100ms ease-out;
+  --kairo-transition-fast:   100ms ease-out;
   --kairo-transition-normal: 150ms ease-out;
-  --kairo-transition-slow: 250ms ease-out;
-
-  /* ========================================
-     LEGACY ALIASES (backwards compatibility)
-     ======================================== */
-  --k-bg: var(--kairo-bg-page);
-  --k-bg-alt: var(--kairo-bg-rail);
-  --k-surface: var(--kairo-bg-elevated);
-  --k-primary: var(--kairo-primary);
-  --k-primary-hover: var(--kairo-primary-deep);
-  --k-primary-soft: var(--kairo-primary-soft);
-  --k-text: var(--kairo-text-main);
-  --k-text-muted: var(--kairo-text-muted);
-  --k-text-subtle: var(--kairo-text-subtle);
-  --k-text-inverse: var(--kairo-text-inverse);
-  --k-border: var(--kairo-border-soft);
-  --k-border-subtle: var(--kairo-border-soft);
-  --k-shadow-soft: var(--kairo-shadow-soft);
-  --k-shadow-elevated: var(--kairo-shadow-elevated);
-  --k-radius-sm: var(--kairo-radius-sm);
-  --k-radius-md: var(--kairo-radius-md);
-  --k-radius-lg: var(--kairo-radius-lg);
-  --k-success: var(--kairo-success);
-  --k-danger: var(--kairo-danger);
-  --k-danger-soft: var(--kairo-danger-soft);
+  --kairo-transition-slow:   250ms ease-out;
 }
 
 /* Tailwind v4 theme integration */
 @theme inline {
-  /* Kairo colors */
-  --color-kairo-bg-page: var(--kairo-bg-page);
-  --color-kairo-bg-elevated: var(--kairo-bg-elevated);
-  --color-kairo-bg-rail: var(--kairo-bg-rail);
-  --color-kairo-primary: var(--kairo-primary);
-  --color-kairo-primary-soft: var(--kairo-primary-soft);
-  --color-kairo-primary-deep: var(--kairo-primary-deep);
-  --color-kairo-accent-coral: var(--kairo-accent-coral);
-  --color-kairo-text-main: var(--kairo-text-main);
-  --color-kairo-text-muted: var(--kairo-text-muted);
-  --color-kairo-text-subtle: var(--kairo-text-subtle);
-  --color-kairo-text-inverse: var(--kairo-text-inverse);
-  --color-kairo-border-soft: var(--kairo-border-soft);
-  --color-kairo-border-strong: var(--kairo-border-strong);
-  --color-kairo-success: var(--kairo-success);
-  --color-kairo-success-soft: var(--kairo-success-soft);
-  --color-kairo-danger: var(--kairo-danger);
-  --color-kairo-danger-soft: var(--kairo-danger-soft);
+  /* Aqua scale */
+  --color-kairo-aqua-50:  var(--kairo-color-aqua-50);
+  --color-kairo-aqua-100: var(--kairo-color-aqua-100);
+  --color-kairo-aqua-300: var(--kairo-color-aqua-300);
+  --color-kairo-aqua-500: var(--kairo-color-aqua-500);
+  --color-kairo-aqua-600: var(--kairo-color-aqua-600);
 
-  /* Status pill colors */
-  --color-kairo-pill-trend-bg: var(--kairo-pill-trend-bg);
-  --color-kairo-pill-trend-text: var(--kairo-pill-trend-text);
-  --color-kairo-pill-evergreen-bg: var(--kairo-pill-evergreen-bg);
-  --color-kairo-pill-evergreen-text: var(--kairo-pill-evergreen-text);
-  --color-kairo-pill-competitive-bg: var(--kairo-pill-competitive-bg);
-  --color-kairo-pill-competitive-text: var(--kairo-pill-competitive-text);
-  --color-kairo-pill-campaign-bg: var(--kairo-pill-campaign-bg);
-  --color-kairo-pill-campaign-text: var(--kairo-pill-campaign-text);
+  /* Sand scale */
+  --color-kairo-sand-25:  var(--kairo-color-sand-25);
+  --color-kairo-sand-50:  var(--kairo-color-sand-50);
+  --color-kairo-sand-100: var(--kairo-color-sand-100);
 
-  /* Legacy aliases for existing components */
-  --color-k-bg: var(--kairo-bg-page);
-  --color-k-bg-alt: var(--kairo-bg-rail);
-  --color-k-surface: var(--kairo-bg-elevated);
-  --color-k-primary: var(--kairo-primary);
-  --color-k-primary-hover: var(--kairo-primary-deep);
-  --color-k-primary-soft: var(--kairo-primary-soft);
-  --color-k-primary-muted: var(--kairo-primary-soft);
-  --color-k-text: var(--kairo-text-main);
-  --color-k-text-muted: var(--kairo-text-muted);
-  --color-k-text-subtle: var(--kairo-text-subtle);
-  --color-k-text-inverse: var(--kairo-text-inverse);
-  --color-k-border: var(--kairo-border-soft);
-  --color-k-border-subtle: var(--kairo-border-soft);
-  --color-k-success: var(--kairo-success);
-  --color-k-danger: var(--kairo-danger);
-  --color-k-danger-soft: var(--kairo-danger-soft);
+  /* Ink scale */
+  --color-kairo-ink-900: var(--kairo-color-ink-900);
+  --color-kairo-ink-700: var(--kairo-color-ink-700);
+  --color-kairo-ink-600: var(--kairo-color-ink-600);
+  --color-kairo-ink-500: var(--kairo-color-ink-500);
+  --color-kairo-ink-400: var(--kairo-color-ink-400);
+  --color-kairo-ink-300: var(--kairo-color-ink-300);
+
+  /* Surfaces */
+  --color-kairo-surface-plain: var(--kairo-color-surface-plain);
+  --color-kairo-surface-soft:  var(--kairo-color-surface-soft);
+
+  /* Borders */
+  --color-kairo-border-subtle: var(--kairo-color-border-subtle);
+  --color-kairo-border-strong: var(--kairo-color-border-strong);
+
+  /* Semantic tags */
+  --color-kairo-tag-trend-bg:       var(--kairo-color-tag-trend-bg);
+  --color-kairo-tag-trend-fg:       var(--kairo-color-tag-trend-fg);
+  --color-kairo-tag-evergreen-bg:   var(--kairo-color-tag-evergreen-bg);
+  --color-kairo-tag-evergreen-fg:   var(--kairo-color-tag-evergreen-fg);
+  --color-kairo-tag-competitive-bg: var(--kairo-color-tag-competitive-bg);
+  --color-kairo-tag-competitive-fg: var(--kairo-color-tag-competitive-fg);
+  --color-kairo-tag-campaign-bg:    var(--kairo-color-tag-campaign-bg);
+  --color-kairo-tag-campaign-fg:    var(--kairo-color-tag-campaign-fg);
+  --color-kairo-tag-low-score-bg:   var(--kairo-color-tag-low-score-bg);
+  --color-kairo-tag-low-score-fg:   var(--kairo-color-tag-low-score-fg);
+
+  /* Action colors */
+  --color-kairo-action-primary-bg:       var(--kairo-color-action-primary-bg);
+  --color-kairo-action-primary-fg:       var(--kairo-color-action-primary-fg);
+  --color-kairo-action-primary-hover-bg: var(--kairo-color-action-primary-hover-bg);
+  --color-kairo-action-muted-bg:         var(--kairo-color-action-muted-bg);
+  --color-kairo-action-muted-border:     var(--kairo-color-action-muted-border);
+  --color-kairo-action-muted-fg:         var(--kairo-color-action-muted-fg);
 
   /* Shadows */
-  --shadow-soft: var(--kairo-shadow-soft);
-  --shadow-card: var(--kairo-shadow-card);
+  --shadow-none:     var(--kairo-shadow-none);
+  --shadow-soft:     var(--kairo-shadow-soft);
   --shadow-elevated: var(--kairo-shadow-elevated);
 
   /* Radii */
-  --radius-sm: var(--kairo-radius-sm);
-  --radius-md: var(--kairo-radius-md);
-  --radius-lg: var(--kairo-radius-lg);
-  --radius-full: var(--kairo-radius-full);
+  --radius-xs:   var(--kairo-radius-xs);
+  --radius-sm:   var(--kairo-radius-sm);
+  --radius-md:   var(--kairo-radius-md);
+  --radius-lg:   var(--kairo-radius-lg);
+  --radius-pill: var(--kairo-radius-pill);
 
   /* Fonts */
-  --font-sans: var(--kairo-font-family);
-  --font-mono: var(--kairo-font-mono);
+  --font-sans: var(--kairo-font-family-sans);
 }
 
 /* ========================================
@@ -189,49 +163,49 @@
    ======================================== */
 
 body {
-  background-color: var(--kairo-bg-page);
-  color: var(--kairo-text-main);
-  font-family: var(--kairo-font-family);
+  background-color: var(--kairo-color-sand-50);
+  color: var(--kairo-color-ink-700);
+  font-family: var(--kairo-font-family-sans);
   font-size: var(--kairo-font-size-md);
   font-weight: var(--kairo-font-weight-regular);
-  line-height: var(--kairo-leading-normal);
+  line-height: var(--kairo-line-height-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Typography defaults */
 h1, h2, h3, h4, h5, h6 {
-  color: var(--kairo-text-main);
+  color: var(--kairo-color-ink-900);
   font-weight: var(--kairo-font-weight-semibold);
-  line-height: var(--kairo-leading-tight);
+  line-height: var(--kairo-line-height-tight);
   letter-spacing: -0.01em;
 }
 
 h1 {
-  font-size: var(--kairo-font-size-2xl);
-}
-
-h2 {
   font-size: var(--kairo-font-size-xl);
 }
 
-h3 {
+h2 {
   font-size: var(--kairo-font-size-lg);
+}
+
+h3 {
+  font-size: var(--kairo-font-size-md);
   font-weight: var(--kairo-font-weight-medium);
 }
 
 p {
-  line-height: var(--kairo-leading-relaxed);
+  line-height: var(--kairo-line-height-relaxed);
 }
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--kairo-primary);
+  outline: 2px solid var(--kairo-color-aqua-500);
   outline-offset: 2px;
 }
 
 /* Selection */
 ::selection {
-  background-color: var(--kairo-primary-soft);
-  color: var(--kairo-primary-deep);
+  background-color: var(--kairo-color-aqua-100);
+  color: var(--kairo-color-aqua-600);
 }
