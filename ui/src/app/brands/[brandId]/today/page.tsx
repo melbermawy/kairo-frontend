@@ -1,18 +1,11 @@
-import { KButton, KCard, KTag } from "@/components/ui";
+import { KCard, KTag } from "@/components/ui";
+import { OpportunityCard } from "@/components/opportunities";
 import { getBrandById } from "@/demo/brands";
-import { getOpportunitiesByBrand, type OpportunityType } from "@/demo/opportunities";
-import Link from "next/link";
+import { getOpportunitiesByBrand } from "@/demo/opportunities";
 
 interface TodayPageProps {
   params: Promise<{ brandId: string }>;
 }
-
-const opportunityTypeVariant: Record<OpportunityType, "trend" | "evergreen" | "competitive" | "campaign"> = {
-  trend: "trend",
-  evergreen: "evergreen",
-  competitive: "competitive",
-  campaign: "campaign",
-};
 
 export default async function TodayPage({ params }: TodayPageProps) {
   const { brandId } = await params;
@@ -22,6 +15,15 @@ export default async function TodayPage({ params }: TodayPageProps) {
   if (!brand) {
     return null;
   }
+
+  // Sort opportunities: pinned first, then by score descending, snoozed last
+  const sortedOpportunities = [...opportunities].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    if (a.isSnoozed && !b.isSnoozed) return 1;
+    if (!a.isSnoozed && b.isSnoozed) return -1;
+    return b.score - a.score;
+  });
 
   return (
     <div className="space-y-6">
@@ -42,40 +44,20 @@ export default async function TodayPage({ params }: TodayPageProps) {
             Today&apos;s Opportunities
           </h2>
           <div className="space-y-3">
-            {opportunities.map((opp) => (
-              <KCard key={opp.id} elevated>
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <KTag variant={opportunityTypeVariant[opp.type]}>
-                      {opp.type}
-                    </KTag>
-                    <span className="text-[11px] text-kairo-ink-500">
-                      Score: <span className="font-medium text-kairo-ink-700">{opp.score}</span>
-                    </span>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <KTag variant="outline">{opp.persona}</KTag>
-                    <KTag variant="outline">{opp.pillar}</KTag>
-                  </div>
-                </div>
-
-                <p className="text-[15px] text-kairo-ink-700 leading-relaxed mb-3">
-                  {opp.angle}
-                </p>
-
-                <div className="flex items-center justify-between pt-3 border-t border-kairo-border-subtle">
-                  <span className="text-[11px] text-kairo-ink-500">
-                    Source: {opp.source}
-                  </span>
-                  <div className="flex gap-2">
-                    <KButton variant="ghost" size="sm">Pin</KButton>
-                    <KButton variant="ghost" size="sm">Snooze</KButton>
-                    <Link href={`/brands/${brandId}/packages`}>
-                      <KButton size="sm">Open as Package</KButton>
-                    </Link>
-                  </div>
-                </div>
-              </KCard>
+            {sortedOpportunities.map((opp) => (
+              <OpportunityCard
+                key={opp.id}
+                id={opp.id}
+                type={opp.type}
+                score={opp.score}
+                title={opp.title}
+                angle={opp.angle}
+                persona={opp.persona}
+                pillar={opp.pillar}
+                source={opp.source}
+                isPinned={opp.isPinned}
+                isSnoozed={opp.isSnoozed}
+              />
             ))}
           </div>
         </div>
