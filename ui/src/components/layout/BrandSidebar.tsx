@@ -3,10 +3,28 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { demoBrands, type DemoBrand } from "@/demo/brands";
-import { navSections, getSectionFromPath } from "./navigation";
+import { navSections, getSectionFromPath, type NavSection } from "./navigation";
+import { TodayIcon, ContentIcon, PatternsIcon, StrategyIcon } from "./NavIcons";
+import { ComponentType, SVGProps } from "react";
 
 interface BrandSidebarProps {
   currentBrandId: string;
+}
+
+const sectionIcons: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
+  today: TodayIcon,
+  packages: ContentIcon,
+  patterns: PatternsIcon,
+  strategy: StrategyIcon,
+};
+
+function getBrandInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((word) => word[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
@@ -14,25 +32,15 @@ export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
   const currentSection = getSectionFromPath(pathname);
 
   return (
-    <aside className="w-[240px] shrink-0 bg-kairo-bg-rail border-r border-kairo-border-soft flex flex-col">
-      {/* Logo */}
-      <div className="h-14 flex items-center px-5 border-b border-kairo-border-soft">
-        <Link
-          href="/"
-          className="text-[19px] font-semibold text-kairo-primary-deep tracking-tight"
-        >
-          kairo
-        </Link>
-      </div>
-
+    <aside className="w-[240px] shrink-0 bg-kairo-sand-100 border-r border-kairo-border-subtle flex flex-col">
       {/* Nav Content */}
-      <nav className="flex-1 p-4 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {/* Brands Section */}
         <div className="mb-6">
-          <h3 className="text-[11px] font-medium text-kairo-text-subtle uppercase tracking-wider mb-2 px-2">
+          <h3 className="text-[11px] font-medium text-kairo-ink-500 uppercase tracking-wider mb-3 px-2">
             Brands
           </h3>
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {demoBrands.map((brand) => (
               <BrandNavItem
                 key={brand.id}
@@ -46,24 +54,17 @@ export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
 
         {/* Section Nav */}
         <div>
-          <h3 className="text-[11px] font-medium text-kairo-text-subtle uppercase tracking-wider mb-2 px-2">
+          <h3 className="text-[11px] font-medium text-kairo-ink-500 uppercase tracking-wider mb-3 px-2">
             Navigation
           </h3>
-          <ul className="space-y-0.5">
+          <ul className="space-y-1">
             {navSections.map((section) => (
-              <li key={section.id}>
-                <Link
-                  href={`/brands/${currentBrandId}/${section.path}`}
-                  className={[
-                    "flex items-center px-3 py-2 rounded-lg text-[14px] transition-all duration-100",
-                    currentSection === section.id
-                      ? "bg-kairo-primary-soft text-kairo-primary-deep font-medium"
-                      : "text-kairo-text-main hover:bg-kairo-primary-soft/50",
-                  ].join(" ")}
-                >
-                  {section.label}
-                </Link>
-              </li>
+              <SectionNavItem
+                key={section.id}
+                section={section}
+                brandId={currentBrandId}
+                isActive={currentSection === section.id}
+              />
             ))}
           </ul>
         </div>
@@ -79,24 +80,103 @@ interface BrandNavItemProps {
 }
 
 function BrandNavItem({ brand, isActive, currentSection }: BrandNavItemProps) {
+  const initials = getBrandInitials(brand.name);
+
   return (
     <li>
       <Link
         href={`/brands/${brand.id}/${currentSection}`}
         className={[
-          "flex items-center px-3 py-2 rounded-lg text-[14px] transition-all duration-100",
+          "group relative flex items-center gap-3 px-3 py-2.5",
+          "rounded-(--kairo-radius-md)",
+          "transition-all duration-150",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
           isActive
-            ? "bg-kairo-primary-soft text-kairo-primary-deep font-medium"
-            : "text-kairo-text-main hover:bg-kairo-primary-soft/50",
+            ? "bg-kairo-surface-plain shadow-soft"
+            : "hover:bg-kairo-surface-soft hover:shadow-soft",
         ].join(" ")}
       >
+        {/* Left accent bar for active state */}
+        {isActive && (
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-kairo-aqua-500 rounded-r-full" />
+        )}
+
+        {/* Brand avatar */}
         <span
           className={[
-            "w-2 h-2 rounded-full mr-3 transition-colors",
-            isActive ? "bg-kairo-primary" : "bg-kairo-text-subtle",
+            "flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-semibold",
+            "transition-colors duration-150",
+            isActive
+              ? "bg-kairo-aqua-100 text-kairo-aqua-600"
+              : "bg-kairo-sand-50 text-kairo-ink-500 group-hover:bg-kairo-aqua-50 group-hover:text-kairo-aqua-600",
+          ].join(" ")}
+        >
+          {initials}
+        </span>
+
+        {/* Brand name */}
+        <span
+          className={[
+            "text-[13px] font-medium transition-colors duration-150",
+            isActive
+              ? "text-kairo-aqua-600"
+              : "text-kairo-ink-700 group-hover:text-kairo-ink-900",
+          ].join(" ")}
+        >
+          {brand.name}
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+interface SectionNavItemProps {
+  section: NavSection;
+  brandId: string;
+  isActive: boolean;
+}
+
+function SectionNavItem({ section, brandId, isActive }: SectionNavItemProps) {
+  const Icon = sectionIcons[section.id] || TodayIcon;
+
+  return (
+    <li>
+      <Link
+        href={`/brands/${brandId}/${section.path}`}
+        className={[
+          "group relative flex items-center gap-3 px-3 py-2",
+          "rounded-(--kairo-radius-pill)",
+          "transition-all duration-150",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
+          isActive
+            ? "bg-kairo-aqua-50 text-kairo-aqua-600"
+            : "text-kairo-ink-500 hover:bg-kairo-surface-soft hover:text-kairo-ink-700",
+        ].join(" ")}
+      >
+        {/* Active indicator dot */}
+        {isActive && (
+          <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-1 bg-kairo-aqua-500 rounded-full" />
+        )}
+
+        {/* Icon */}
+        <Icon
+          className={[
+            "w-4 h-4 transition-colors duration-150",
+            isActive
+              ? "text-kairo-aqua-600"
+              : "text-kairo-ink-400 group-hover:text-kairo-ink-600",
           ].join(" ")}
         />
-        {brand.name}
+
+        {/* Label */}
+        <span
+          className={[
+            "text-[13px] transition-colors duration-150",
+            isActive ? "font-medium" : "font-normal",
+          ].join(" ")}
+        >
+          {section.label}
+        </span>
       </Link>
     </li>
   );

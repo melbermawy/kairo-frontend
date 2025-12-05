@@ -27,8 +27,10 @@ export default async function TodayPage({ params }: TodayPageProps) {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-kairo-text-main">Today for {brand.name}</h1>
-        <p className="text-[14px] text-kairo-text-muted mt-1">
+        <h1 className="text-kairo-ink-900 text-[22px] font-semibold">
+          Today for {brand.name}
+        </h1>
+        <p className="text-[14px] text-kairo-ink-500 mt-1">
           Fresh opportunities, on-brand.
         </p>
       </div>
@@ -36,7 +38,9 @@ export default async function TodayPage({ params }: TodayPageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Opportunities Panel */}
         <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-kairo-text-main">Today&apos;s Opportunities</h2>
+          <h2 className="text-kairo-ink-900 text-[18px] font-semibold">
+            Today&apos;s Opportunities
+          </h2>
           <div className="space-y-3">
             {opportunities.map((opp) => (
               <KCard key={opp.id} elevated>
@@ -45,8 +49,8 @@ export default async function TodayPage({ params }: TodayPageProps) {
                     <KTag variant={opportunityTypeVariant[opp.type]}>
                       {opp.type}
                     </KTag>
-                    <span className="text-[12px] text-kairo-text-subtle">
-                      Score: <span className="font-medium text-kairo-text-muted">{opp.score}</span>
+                    <span className="text-[11px] text-kairo-ink-500">
+                      Score: <span className="font-medium text-kairo-ink-700">{opp.score}</span>
                     </span>
                   </div>
                   <div className="flex gap-1.5">
@@ -55,12 +59,12 @@ export default async function TodayPage({ params }: TodayPageProps) {
                   </div>
                 </div>
 
-                <p className="text-[15px] text-kairo-text-main leading-relaxed mb-3">
+                <p className="text-[15px] text-kairo-ink-700 leading-relaxed mb-3">
                   {opp.angle}
                 </p>
 
-                <div className="flex items-center justify-between pt-3 border-t border-kairo-border-soft">
-                  <span className="text-[12px] text-kairo-text-subtle">
+                <div className="flex items-center justify-between pt-3 border-t border-kairo-border-subtle">
+                  <span className="text-[11px] text-kairo-ink-500">
                     Source: {opp.source}
                   </span>
                   <div className="flex gap-2">
@@ -78,33 +82,35 @@ export default async function TodayPage({ params }: TodayPageProps) {
 
         {/* Week at a Glance */}
         <div className="space-y-4">
-          <h2 className="text-kairo-text-main">This Week at a Glance</h2>
+          <h2 className="text-kairo-ink-900 text-[18px] font-semibold">
+            This Week at a Glance
+          </h2>
 
           <KCard>
             <div className="space-y-5">
               <div>
-                <p className="text-[11px] text-kairo-text-subtle uppercase tracking-wider font-medium mb-1">
+                <p className="text-[11px] text-kairo-ink-500 uppercase tracking-wider font-medium mb-1">
                   Packages in Progress
                 </p>
-                <p className="text-[28px] font-semibold text-kairo-text-main leading-none">3</p>
+                <p className="text-[28px] font-semibold text-kairo-ink-900 leading-none">3</p>
               </div>
               <div>
-                <p className="text-[11px] text-kairo-text-subtle uppercase tracking-wider font-medium mb-1">
+                <p className="text-[11px] text-kairo-ink-500 uppercase tracking-wider font-medium mb-1">
                   Posts Scheduled
                 </p>
-                <p className="text-[28px] font-semibold text-kairo-text-main leading-none">5</p>
+                <p className="text-[28px] font-semibold text-kairo-ink-900 leading-none">5</p>
               </div>
               <div>
-                <p className="text-[11px] text-kairo-text-subtle uppercase tracking-wider font-medium mb-1">
+                <p className="text-[11px] text-kairo-ink-500 uppercase tracking-wider font-medium mb-1">
                   Published This Week
                 </p>
-                <p className="text-[28px] font-semibold text-kairo-text-main leading-none">2</p>
+                <p className="text-[28px] font-semibold text-kairo-ink-900 leading-none">2</p>
               </div>
             </div>
           </KCard>
 
           <KCard>
-            <p className="text-[11px] text-kairo-text-subtle uppercase tracking-wider font-medium mb-3">
+            <p className="text-[11px] text-kairo-ink-500 uppercase tracking-wider font-medium mb-3">
               Active Channels
             </p>
             <div className="flex gap-2 flex-wrap">
