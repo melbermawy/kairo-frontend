@@ -56,8 +56,8 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
         "bg-kairo-surface-plain",
         "border border-kairo-border-subtle",
         "px-4 py-2.5",
-        "hover:border-kairo-border-strong",
-        "transition-colors duration-100",
+        "kairo-transition-soft",
+        "hover:border-kairo-border-strong hover:shadow-elevated hover:scale-[1.005] hover:bg-kairo-surface-soft",
       ].join(" ")}
     >
       {/* Two-column layout: Left (content) + Right (channels/ownership/actions) */}
@@ -77,17 +77,17 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
             >
               {pkg.title}
             </Link>
-            <KTag variant={statusVariants[pkg.status]} className="shrink-0 uppercase text-[10px] tracking-wide">
+            <KTag variant={statusVariants[pkg.status]} className="shrink-0 uppercase text-[10px] tracking-wide kairo-transition-fast group-hover:opacity-100 opacity-90">
               {statusLabels[pkg.status]}
             </KTag>
           </div>
 
-          {/* Line 2: Meta (origin, persona, pillar, variants) */}
-          <div className="flex items-center gap-1.5 text-xs text-kairo-ink-500">
+          {/* Line 2: Meta (origin, persona, pillar, variants) - de-emphasized */}
+          <div className="flex items-center gap-1.5 text-xs text-kairo-ink-400">
             {opportunityTitle && (
               <>
-                <span className="text-kairo-ink-400">from</span>
-                <span className="text-kairo-aqua-600 truncate max-w-[200px]">{opportunityTitle}</span>
+                <span>from</span>
+                <span className="text-kairo-ink-500 truncate max-w-[200px]">{opportunityTitle}</span>
                 <span className="text-kairo-ink-300">·</span>
               </>
             )}
@@ -97,7 +97,7 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
             {variantCount > 0 && (
               <>
                 <span className="text-kairo-ink-300">·</span>
-                <span className="text-kairo-ink-400 shrink-0">
+                <span className="shrink-0">
                   {variantCount} variant{variantCount !== 1 ? "s" : ""}
                 </span>
               </>
@@ -121,6 +121,7 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
                     "text-xs font-medium",
                     "bg-kairo-sand-75 text-kairo-ink-600",
                     "border border-kairo-border-subtle",
+                    "kairo-transition-fast group-hover:bg-kairo-sand-100 group-hover:text-kairo-ink-700",
                   ].join(" ")}
                 >
                   {channelLabels[channel]}
@@ -130,10 +131,10 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
 
             {/* Actions - always visible */}
             <div className="flex items-center gap-1">
-              <KButton variant="ghost" size="sm">
+              <KButton variant="ghost" size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
                 Edit
               </KButton>
-              <KButton size="sm">
+              <KButton size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
                 Open
               </KButton>
             </div>

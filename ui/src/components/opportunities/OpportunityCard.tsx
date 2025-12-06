@@ -42,11 +42,11 @@ export function OpportunityCard({
         "group relative",
         "rounded-(--kairo-radius-md)",
         "px-3.5 py-3",
-        "transition-all duration-150",
-        // Background + shadow
+        "kairo-transition-soft",
+        // Background + shadow + hover scale
         isSnoozed
           ? "bg-kairo-surface-soft shadow-none"
-          : "bg-kairo-surface-plain shadow-soft hover:shadow-elevated",
+          : "bg-kairo-surface-plain shadow-soft hover:shadow-elevated hover:scale-[1.01] hover:bg-kairo-surface-soft",
         // Border: thinner accent for pinned
         isPinned
           ? "border-l-2 border-l-kairo-aqua-500 border-t border-r border-b border-kairo-border-subtle"
@@ -70,9 +70,10 @@ export function OpportunityCard({
             "inline-flex items-center gap-1 px-1.5 py-px",
             "rounded-(--kairo-radius-xs)",
             "text-[10px] font-medium tracking-wide",
+            "kairo-transition-fast",
             isLowScore
-              ? "bg-kairo-tag-low-score-bg/60 text-kairo-tag-low-score-fg"
-              : "bg-kairo-sand-100 text-kairo-ink-600",
+              ? "bg-kairo-tag-low-score-bg/60 text-kairo-tag-low-score-fg group-hover:bg-kairo-tag-low-score-bg/80"
+              : "bg-kairo-sand-100 text-kairo-ink-600 group-hover:bg-kairo-sand-100 group-hover:text-kairo-ink-700",
             isSnoozed ? "opacity-50" : "",
           ].join(" ")}
         >
@@ -95,7 +96,7 @@ export function OpportunityCard({
       {/* Angle / Why now */}
       <p
         className={[
-          "text-[13px] leading-snug mt-0.5 mb-2",
+          "text-sm leading-snug mt-0.5",
           "line-clamp-2",
           isSnoozed ? "text-kairo-ink-400" : "text-kairo-ink-700",
         ].join(" ")}
@@ -103,28 +104,18 @@ export function OpportunityCard({
         {angle}
       </p>
 
-      {/* Meta row: Persona + Pillar + Source */}
-      <div className="flex items-center gap-1.5 flex-wrap text-[10px] tracking-wide">
-        <span
-          className={[
-            "inline-flex px-1.5 py-0.5 rounded-(--kairo-radius-xs)",
-            "border border-kairo-border-subtle",
-            isSnoozed ? "text-kairo-ink-400" : "text-kairo-ink-600",
-          ].join(" ")}
-        >
+      {/* Meta row: Persona + Pillar + Source - de-emphasized */}
+      <div className="flex items-center gap-1.5 flex-wrap text-xs text-kairo-ink-500 mt-3">
+        <span className={isSnoozed ? "text-kairo-ink-400" : ""}>
           {persona}
         </span>
-        <span
-          className={[
-            "inline-flex px-1.5 py-0.5 rounded-(--kairo-radius-xs)",
-            "border border-kairo-border-subtle",
-            isSnoozed ? "text-kairo-ink-400" : "text-kairo-ink-600",
-          ].join(" ")}
-        >
+        <span className="text-kairo-ink-300">·</span>
+        <span className={isSnoozed ? "text-kairo-ink-400" : ""}>
           {pillar}
         </span>
+        <span className="text-kairo-ink-300">·</span>
         <span className={isSnoozed ? "text-kairo-ink-300" : "text-kairo-ink-400"}>
-          · {source}
+          {source}
         </span>
       </div>
 
@@ -134,7 +125,7 @@ export function OpportunityCard({
           variant="ghost"
           size="sm"
           className={[
-            "text-[12px] px-2",
+            "text-[12px] px-2 kairo-transition-fast",
             isPinned ? "text-kairo-aqua-600" : "text-kairo-ink-500",
           ].join(" ")}
         >
@@ -143,11 +134,14 @@ export function OpportunityCard({
         <KButton
           variant="ghost"
           size="sm"
-          className="text-[12px] px-2 text-kairo-ink-500"
+          className="text-[12px] px-2 text-kairo-ink-500 kairo-transition-fast"
         >
           {isSnoozed ? "Unsnooze" : "Snooze"}
         </KButton>
-        <KButton size="sm" className="text-[12px]">
+        <KButton
+          size="sm"
+          className="text-[12px] kairo-transition-fast group-hover:-translate-y-px"
+        >
           Open as Package
         </KButton>
       </div>

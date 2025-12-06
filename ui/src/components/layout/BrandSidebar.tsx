@@ -89,11 +89,12 @@ function BrandNavItem({ brand, isActive, currentSection }: BrandNavItemProps) {
         className={[
           "group relative flex items-center gap-3 px-3 py-2.5",
           "rounded-(--kairo-radius-md)",
-          "transition-all duration-150",
+          "kairo-transition-soft",
+          "hover:translate-x-px",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
           isActive
             ? "bg-kairo-surface-plain shadow-soft"
-            : "hover:bg-kairo-surface-soft hover:shadow-soft",
+            : "hover:bg-kairo-surface-soft hover:shadow-elevated",
         ].join(" ")}
       >
         {/* Left accent bar for active state */}
@@ -105,7 +106,7 @@ function BrandNavItem({ brand, isActive, currentSection }: BrandNavItemProps) {
         <span
           className={[
             "flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-semibold",
-            "transition-colors duration-150",
+            "kairo-transition-fast",
             isActive
               ? "bg-kairo-aqua-100 text-kairo-aqua-600"
               : "bg-kairo-sand-50 text-kairo-ink-500 group-hover:bg-kairo-aqua-50 group-hover:text-kairo-aqua-600",
@@ -117,7 +118,7 @@ function BrandNavItem({ brand, isActive, currentSection }: BrandNavItemProps) {
         {/* Brand name */}
         <span
           className={[
-            "text-[13px] font-medium transition-colors duration-150",
+            "text-[13px] font-medium kairo-transition-fast",
             isActive
               ? "text-kairo-aqua-600"
               : "text-kairo-ink-700 group-hover:text-kairo-ink-900",
@@ -146,11 +147,12 @@ function SectionNavItem({ section, brandId, isActive }: SectionNavItemProps) {
         className={[
           "group relative flex items-center gap-3 px-3 py-2",
           "rounded-(--kairo-radius-pill)",
-          "transition-all duration-150",
+          "kairo-transition-soft",
+          "hover:translate-x-px",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
           isActive
             ? "bg-kairo-aqua-50 text-kairo-aqua-600"
-            : "text-kairo-ink-500 hover:bg-kairo-surface-soft hover:text-kairo-ink-700",
+            : "text-kairo-ink-500 hover:bg-kairo-surface-soft hover:text-kairo-ink-700 hover:shadow-soft",
         ].join(" ")}
       >
         {/* Active indicator dot */}
@@ -161,7 +163,7 @@ function SectionNavItem({ section, brandId, isActive }: SectionNavItemProps) {
         {/* Icon */}
         <Icon
           className={[
-            "w-4 h-4 transition-colors duration-150",
+            "w-4 h-4 kairo-transition-fast",
             isActive
               ? "text-kairo-aqua-600"
               : "text-kairo-ink-400 group-hover:text-kairo-ink-600",
@@ -171,7 +173,7 @@ function SectionNavItem({ section, brandId, isActive }: SectionNavItemProps) {
         {/* Label */}
         <span
           className={[
-            "text-[13px] transition-colors duration-150",
+            "text-[13px] kairo-transition-fast",
             isActive ? "font-medium" : "font-normal",
           ].join(" ")}
         >

@@ -35,8 +35,8 @@ export function PatternRow({ pattern }: PatternRowProps) {
         "bg-kairo-surface-plain",
         "border border-kairo-border-subtle",
         "px-4 py-3",
-        "hover:border-kairo-border-strong hover:bg-kairo-sand-25",
-        "transition-colors duration-100",
+        "kairo-transition-soft",
+        "hover:border-kairo-border-strong hover:bg-kairo-sand-25 hover:shadow-elevated hover:scale-[1.005]",
         "cursor-pointer",
       ].join(" ")}
     >
@@ -74,9 +74,9 @@ export function PatternRow({ pattern }: PatternRowProps) {
         </div>
       </div>
 
-      {/* Beat bar */}
+      {/* Beat bar - clamped to 4 beats */}
       <div className="flex items-center gap-1 mb-2">
-        {pattern.beats.map((beat, idx) => (
+        {pattern.beats.slice(0, 4).map((beat, idx) => (
           <span
             key={idx}
             className={[
@@ -85,21 +85,21 @@ export function PatternRow({ pattern }: PatternRowProps) {
               "rounded-(--kairo-radius-xs)",
               "text-xs font-medium",
               "bg-kairo-aqua-50 text-kairo-aqua-600",
+              "kairo-transition-fast",
+              "group-hover:bg-kairo-aqua-100 group-hover:-translate-y-px",
             ].join(" ")}
           >
             {beat}
           </span>
         ))}
+        {pattern.beats.length > 4 && (
+          <span className="text-xs text-kairo-ink-400">…</span>
+        )}
       </div>
 
-      {/* Bottom line: Performance hint + Usage meta */}
-      <div className="flex items-center justify-between gap-4 text-xs">
-        <span className="text-kairo-ink-600">
-          {pattern.performanceHint}
-        </span>
-        <span className="text-kairo-ink-500 shrink-0">
-          Used in {pattern.usageCount} packages · Last used {formatLastUsed(pattern.lastUsedDaysAgo)}
-        </span>
+      {/* Bottom line: Usage meta - de-emphasized */}
+      <div className="text-xs text-kairo-ink-400">
+        {pattern.usageCount} uses · Last {formatLastUsed(pattern.lastUsedDaysAgo)}
       </div>
     </article>
   );

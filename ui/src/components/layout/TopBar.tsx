@@ -63,7 +63,8 @@ export function TopBar({ brandId, onAskKairo }: TopBarProps) {
               "bg-white/15 hover:bg-white/25",
               "text-white text-[13px] font-medium",
               "rounded-(--kairo-radius-pill)",
-              "transition-all duration-150",
+              "kairo-transition-soft",
+              "hover:scale-[1.02] hover:shadow-elevated",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-aqua-500",
             ].join(" ")}
           >
@@ -75,8 +76,9 @@ export function TopBar({ brandId, onAskKairo }: TopBarProps) {
           <div
             className={[
               "flex items-center justify-center w-7 h-7",
-              "bg-white/20 text-white text-[11px] font-semibold",
+              "bg-white/20 hover:bg-white/30 text-white text-[11px] font-semibold",
               "rounded-full",
+              "kairo-transition-soft cursor-pointer",
             ].join(" ")}
           >
             {getUserInitial()}
