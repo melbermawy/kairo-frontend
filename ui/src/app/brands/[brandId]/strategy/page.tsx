@@ -1,5 +1,5 @@
 import { KCard } from "@/components/ui";
-import { getBrandById, getBrandStrategy } from "@/demo/brands";
+import { demoClient } from "@/lib/demoClient";
 import {
   BrandPositioningCard,
   PersonasGrid,
@@ -13,8 +13,8 @@ interface StrategyPageProps {
 
 export default async function StrategyPage({ params }: StrategyPageProps) {
   const { brandId } = await params;
-  const brand = getBrandById(brandId);
-  const strategy = getBrandStrategy(brandId);
+  const brand = demoClient.getBrand(brandId);
+  const strategy = demoClient.getBrandStrategy(brandId);
 
   if (!brand) {
     return null;

@@ -1,9 +1,7 @@
 import { KCard } from "@/components/ui";
 import { OpportunityCard } from "@/components/opportunities";
 import { TodayFocusStrip } from "@/components/today";
-import { getBrandById } from "@/demo/brands";
-import { getOpportunitiesByBrand } from "@/demo/opportunities";
-import { getPackagesByBrand } from "@/demo/packages";
+import { demoClient } from "@/lib/demoClient";
 
 interface TodayPageProps {
   params: Promise<{ brandId: string }>;
@@ -11,7 +9,7 @@ interface TodayPageProps {
 
 // Compute metrics from actual packages
 function computeWeekMetrics(brandId: string) {
-  const packages = getPackagesByBrand(brandId);
+  const packages = demoClient.listPackages(brandId);
 
   // In progress = draft + in_review
   const inProgress = packages.filter(
@@ -33,7 +31,7 @@ function computeWeekMetrics(brandId: string) {
 
 // Compute channel activity from packages
 function computeChannelCounts(brandId: string): Record<string, number> {
-  const packages = getPackagesByBrand(brandId);
+  const packages = demoClient.listPackages(brandId);
   const counts: Record<string, number> = {};
 
   const channelLabels: Record<string, string> = {
@@ -70,8 +68,8 @@ function getWeeklyInsight(brandId: string) {
 
 export default async function TodayPage({ params }: TodayPageProps) {
   const { brandId } = await params;
-  const brand = getBrandById(brandId);
-  const opportunities = getOpportunitiesByBrand(brandId);
+  const brand = demoClient.getBrand(brandId);
+  const opportunities = demoClient.listOpportunities(brandId);
   const weekMetrics = computeWeekMetrics(brandId);
   const channelCounts = computeChannelCounts(brandId);
   const weeklyInsight = getWeeklyInsight(brandId);
@@ -122,6 +120,11 @@ export default async function TodayPage({ params }: TodayPageProps) {
           <h2 className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide">
             Today&apos;s Opportunities
           </h2>
+          {/*
+            TODO: OpportunityCard accepts onPin, onSnooze, onOpenAsPackage callbacks
+            that wire to demoClient stubs. To connect them, create a client wrapper
+            component or use server actions when real backend is ready.
+          */}
           <div className="space-y-2.5">
             {sortedOpportunities.map((opp) => (
               <OpportunityCard

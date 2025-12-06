@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { demoBrands, type DemoBrand } from "@/demo/brands";
+import { demoClient, type DemoBrand } from "@/lib/demoClient";
 import { navSections, getSectionFromPath, type NavSection } from "./navigation";
 import { TodayIcon, ContentIcon, PatternsIcon, StrategyIcon } from "./NavIcons";
 import { ComponentType, SVGProps } from "react";
@@ -41,7 +41,7 @@ export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
             Brands
           </h3>
           <ul className="space-y-1">
-            {demoBrands.map((brand) => (
+            {demoClient.listBrands().map((brand) => (
               <BrandNavItem
                 key={brand.id}
                 brand={brand}

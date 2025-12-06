@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getBrandById } from "@/demo/brands";
+import { demoClient } from "@/lib/demoClient";
 import { getSectionFromPath, getSectionLabel } from "./navigation";
 import { SparkleIcon } from "./NavIcons";
 
@@ -18,7 +18,7 @@ function getUserInitial(): string {
 
 export function TopBar({ brandId, onAskKairo }: TopBarProps) {
   const pathname = usePathname();
-  const brand = getBrandById(brandId);
+  const brand = demoClient.getBrand(brandId);
   const sectionId = getSectionFromPath(pathname);
   const sectionLabel = getSectionLabel(sectionId);
 

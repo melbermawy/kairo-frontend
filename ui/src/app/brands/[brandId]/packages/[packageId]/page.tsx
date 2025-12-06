@@ -7,11 +7,7 @@ import {
   SourceOpportunityCard,
   PackageSummaryCard,
 } from "@/components/packages";
-import { getBrandById } from "@/demo/brands";
-import { getPackageById, getOpportunityTitleById } from "@/demo/packages";
-import { getOpportunityById } from "@/demo/opportunities";
-import { getPatternsByChannel } from "@/demo/patterns";
-import type { PackageStatus, PackageChannel } from "@/demo/packages";
+import { demoClient, type PackageStatus, type PackageChannel } from "@/lib/demoClient";
 
 interface PackageDetailPageProps {
   params: Promise<{ brandId: string; packageId: string }>;
@@ -39,20 +35,20 @@ const channelLabels: Record<PackageChannel, string> = {
 
 export default async function PackageDetailPage({ params }: PackageDetailPageProps) {
   const { brandId, packageId } = await params;
-  const brand = getBrandById(brandId);
-  const pkg = getPackageById(packageId);
+  const brand = demoClient.getBrand(brandId);
+  const pkg = demoClient.getPackage(packageId);
 
   if (!brand || !pkg || pkg.brandId !== brandId) {
     notFound();
   }
 
-  const opportunity = pkg.opportunityId ? getOpportunityById(pkg.opportunityId) : null;
-  const opportunityTitle = getOpportunityTitleById(pkg.opportunityId);
+  const opportunity = pkg.opportunityId ? demoClient.getOpportunity(pkg.opportunityId) : null;
+  const opportunityTitle = demoClient.getOpportunityTitle(pkg.opportunityId);
 
   // Get patterns relevant to first channel for suggestions
   const firstChannel = pkg.channels[0];
   const channelForPatterns = firstChannel === "linkedin" ? "LinkedIn" : firstChannel === "x" ? "X" : "YouTube Shorts";
-  const suggestedPatterns = getPatternsByChannel(channelForPatterns);
+  const suggestedPatterns = demoClient.listPatternsByChannel(channelForPatterns);
 
   return (
     <div className="space-y-6">

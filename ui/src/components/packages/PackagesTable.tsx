@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { PackageRow } from "./PackageRow";
 import { KButton } from "@/components/ui";
-import type { DemoPackage, PackageStatus } from "@/demo/packages";
-import { getOpportunityTitleById } from "@/demo/packages";
+import { demoClient, type DemoPackage, type PackageStatus } from "@/lib/demoClient";
 
 type FilterStatus = "all" | PackageStatus;
 
@@ -91,7 +90,10 @@ export function PackagesTable({ packages, brandId }: PackagesTableProps) {
               key={pkg.id}
               pkg={pkg}
               brandId={brandId}
-              opportunityTitle={getOpportunityTitleById(pkg.opportunityId)}
+              opportunityTitle={demoClient.getOpportunityTitle(pkg.opportunityId)}
+              // TODO: Wire to real status transitions when backend exists
+              onEdit={() => demoClient.updatePackageStatus(brandId, pkg.id, "in_review")}
+              onOpen={() => demoClient.updatePackageStatus(brandId, pkg.id, pkg.status)}
             />
           ))}
         </div>
