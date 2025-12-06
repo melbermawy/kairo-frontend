@@ -14,6 +14,10 @@ export interface OpportunityCardProps {
   source: string;
   isPinned?: boolean;
   isSnoozed?: boolean;
+  // Action callbacks (wired to demoClient stubs)
+  onPin?: () => void;
+  onSnooze?: () => void;
+  onOpenAsPackage?: () => void;
 }
 
 const typeLabels: Record<OpportunityType, string> = {
@@ -33,6 +37,9 @@ export function OpportunityCard({
   source,
   isPinned = false,
   isSnoozed = false,
+  onPin,
+  onSnooze,
+  onOpenAsPackage,
 }: OpportunityCardProps) {
   const isLowScore = score < LOW_SCORE_THRESHOLD;
 
@@ -124,6 +131,7 @@ export function OpportunityCard({
         <KButton
           variant="ghost"
           size="sm"
+          onClick={onPin}
           className={[
             "text-[12px] px-2 kairo-transition-fast",
             isPinned ? "text-kairo-aqua-600" : "text-kairo-ink-500",
@@ -134,12 +142,14 @@ export function OpportunityCard({
         <KButton
           variant="ghost"
           size="sm"
+          onClick={onSnooze}
           className="text-[12px] px-2 text-kairo-ink-500 kairo-transition-fast"
         >
           {isSnoozed ? "Unsnooze" : "Snooze"}
         </KButton>
         <KButton
           size="sm"
+          onClick={onOpenAsPackage}
           className="text-[12px] kairo-transition-fast group-hover:-translate-y-px"
         >
           Open as Package

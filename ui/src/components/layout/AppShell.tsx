@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { BrandSidebar } from "./BrandSidebar";
 import { TopBar } from "./TopBar";
 import { getSectionFromPath, getSectionLabel } from "./navigation";
-import { getBrandById } from "@/demo/brands";
+import { demoClient } from "@/lib/demoClient";
 import { KairoChatChrome } from "@/components/chat";
 
 interface AppShellProps {
@@ -17,7 +17,7 @@ export function AppShell({ brandId, children }: AppShellProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const pathname = usePathname();
 
-  const brand = getBrandById(brandId);
+  const brand = demoClient.getBrand(brandId);
   const sectionId = getSectionFromPath(pathname);
   const sectionLabel = getSectionLabel(sectionId);
 

@@ -8,6 +8,9 @@ interface PackageRowProps {
   pkg: DemoPackage;
   brandId: string;
   opportunityTitle?: string | null;
+  // Action callbacks (wired to demoClient stubs)
+  onEdit?: () => void;
+  onOpen?: () => void;
 }
 
 const statusVariants: Record<PackageStatus, "muted" | "campaign" | "default" | "evergreen"> = {
@@ -45,7 +48,7 @@ function formatRelativeTime(isoDate: string): string {
   return `${Math.floor(diffDays / 30)}mo ago`;
 }
 
-export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) {
+export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: PackageRowProps) {
   const variantCount = pkg.variants.length;
 
   return (
@@ -131,10 +134,10 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
 
             {/* Actions - always visible */}
             <div className="flex items-center gap-1">
-              <KButton variant="ghost" size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
+              <KButton variant="ghost" size="sm" onClick={onEdit} className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
                 Edit
               </KButton>
-              <KButton size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
+              <KButton size="sm" onClick={onOpen} className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
                 Open
               </KButton>
             </div>

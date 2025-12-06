@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { getBrandById } from "@/demo/brands";
+import { demoClient } from "@/lib/demoClient";
 import { AppShell } from "@/components/layout/AppShell";
 
 interface BrandLayoutProps {
@@ -10,7 +10,7 @@ interface BrandLayoutProps {
 
 export default async function BrandLayout({ children, params }: BrandLayoutProps) {
   const { brandId } = await params;
-  const brand = getBrandById(brandId);
+  const brand = demoClient.getBrand(brandId);
 
   if (!brand) {
     notFound();

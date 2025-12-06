@@ -1,5 +1,4 @@
-import { getBrandById } from "@/demo/brands";
-import { getAllPatterns, getTopPatterns } from "@/demo/patterns";
+import { demoClient } from "@/lib/demoClient";
 import {
   PatternFilters,
   PatternRecommendationHero,
@@ -12,9 +11,9 @@ interface PatternsPageProps {
 
 export default async function PatternsPage({ params }: PatternsPageProps) {
   const { brandId } = await params;
-  const brand = getBrandById(brandId);
-  const patterns = getAllPatterns();
-  const topPatterns = getTopPatterns(3);
+  const brand = demoClient.getBrand(brandId);
+  const patterns = demoClient.listPatterns();
+  const topPatterns = demoClient.getTopPatterns(3);
 
   if (!brand) {
     return null;

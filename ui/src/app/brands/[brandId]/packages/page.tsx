@@ -1,8 +1,7 @@
 import { KButton } from "@/components/ui";
 import { PackagesTable } from "@/components/packages";
 import { ContentPipelineStrip } from "@/components/content";
-import { getBrandById } from "@/demo/brands";
-import { getPackagesByBrand } from "@/demo/packages";
+import { demoClient } from "@/lib/demoClient";
 
 interface PackagesPageProps {
   params: Promise<{ brandId: string }>;
@@ -10,8 +9,8 @@ interface PackagesPageProps {
 
 export default async function PackagesPage({ params }: PackagesPageProps) {
   const { brandId } = await params;
-  const brand = getBrandById(brandId);
-  const packages = getPackagesByBrand(brandId);
+  const brand = demoClient.getBrand(brandId);
+  const packages = demoClient.listPackages(brandId);
 
   if (!brand) {
     return null;
