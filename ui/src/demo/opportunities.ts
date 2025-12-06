@@ -123,3 +123,7 @@ export const demoOpportunities: DemoOpportunity[] = [
 export function getOpportunitiesByBrand(brandId: string): DemoOpportunity[] {
   return demoOpportunities.filter((o) => o.brandId === brandId);
 }
+
+export function getOpportunityById(id: string): DemoOpportunity | undefined {
+  return demoOpportunities.find((o) => o.id === id);
+}

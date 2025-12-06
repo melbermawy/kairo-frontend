@@ -1,3 +1,9 @@
+export interface BrandVoice {
+  summary: string;
+  toneTags: string[];
+  nevers: string[];
+}
+
 export interface DemoBrand {
   id: string;
   slug: string;
@@ -9,6 +15,7 @@ export interface DemoBrand {
   positioning: string;
   pillars: string[];
   personas: string[];
+  voice: BrandVoice;
 }
 
 export const demoBrands: DemoBrand[] = [
@@ -23,6 +30,15 @@ export const demoBrands: DemoBrand[] = [
     positioning: "The only marketing analytics platform that connects attribution to actual revenue outcomes.",
     pillars: ["Attribution", "Revenue Analytics", "Marketing ROI", "Data Integration"],
     personas: ["Data-driven CMO", "RevOps Lead", "Growth Marketer"],
+    voice: {
+      summary: "Direct, optimistic, and analytical. We speak to peers, not prospects. No hype, no fluff—just insights that help marketers prove their value.",
+      toneTags: ["Analytical", "No vanity metrics", "CMO-friendly", "Data-first", "Peer-to-peer"],
+      nevers: [
+        "Don't dunk on competitors by name",
+        "Avoid jargon without explanation",
+        "Never promise instant ROI",
+      ],
+    },
   },
   {
     id: "brand_002",
@@ -35,6 +51,15 @@ export const demoBrands: DemoBrand[] = [
     positioning: "Authentic creative storytelling that connects brands with real audiences.",
     pillars: ["Creative Process", "Behind the Scenes", "Industry Insights", "Client Stories"],
     personas: ["Aspiring Creator", "Small Business Owner", "Marketing Manager"],
+    voice: {
+      summary: "Story-driven, playful, and refreshingly honest. We share the real process—wins, failures, and everything in between.",
+      toneTags: ["Behind-the-scenes", "Authentic", "Creator-first", "No gatekeeping", "Real talk"],
+      nevers: [
+        "Don't pretend everything is easy",
+        "Never use stock footage vibes",
+        "Avoid corporate speak",
+      ],
+    },
   },
 ];
 
