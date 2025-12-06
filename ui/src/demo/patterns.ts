@@ -1,3 +1,6 @@
+export type PatternStatus = "active" | "experimental" | "deprecated";
+export type PatternCategory = "evergreen" | "launch" | "education" | "engagement";
+
 export interface DemoPattern {
   id: string;
   name: string;
@@ -9,6 +12,9 @@ export interface DemoPattern {
   avgEngagement: number;
   channels: string[];
   performanceHint: string;
+  status: PatternStatus;
+  category: PatternCategory;
+  lastUsedDaysAgo: number;
 }
 
 export const demoPatterns: DemoPattern[] = [
@@ -23,6 +29,9 @@ export const demoPatterns: DemoPattern[] = [
     avgEngagement: 4.2,
     channels: ["LinkedIn"],
     performanceHint: "↑ 23% click-through on LinkedIn last 30 days",
+    status: "active",
+    category: "evergreen",
+    lastUsedDaysAgo: 2,
   },
   {
     id: "pat_002",
@@ -35,6 +44,9 @@ export const demoPatterns: DemoPattern[] = [
     avgEngagement: 3.8,
     channels: ["LinkedIn", "X"],
     performanceHint: "↑ High engagement with CMO persona",
+    status: "active",
+    category: "engagement",
+    lastUsedDaysAgo: 5,
   },
   {
     id: "pat_003",
@@ -47,6 +59,9 @@ export const demoPatterns: DemoPattern[] = [
     avgEngagement: 5.1,
     channels: ["X"],
     performanceHint: "↑ 2.1x retweets on X",
+    status: "active",
+    category: "engagement",
+    lastUsedDaysAgo: 1,
   },
   {
     id: "pat_004",
@@ -59,6 +74,9 @@ export const demoPatterns: DemoPattern[] = [
     avgEngagement: 3.4,
     channels: ["LinkedIn", "X"],
     performanceHint: "Works well for technical topics",
+    status: "active",
+    category: "education",
+    lastUsedDaysAgo: 8,
   },
   {
     id: "pat_005",
@@ -71,6 +89,9 @@ export const demoPatterns: DemoPattern[] = [
     avgEngagement: 4.8,
     channels: ["X", "YouTube Shorts"],
     performanceHint: "↑ High saves and bookmarks",
+    status: "experimental",
+    category: "evergreen",
+    lastUsedDaysAgo: 3,
   },
   {
     id: "pat_006",
@@ -83,6 +104,54 @@ export const demoPatterns: DemoPattern[] = [
     avgEngagement: 3.9,
     channels: ["X", "LinkedIn"],
     performanceHint: "↑ Saves on X threads",
+    status: "active",
+    category: "education",
+    lastUsedDaysAgo: 4,
+  },
+  {
+    id: "pat_007",
+    name: "Problem → solution → proof",
+    description: "Classic problem-agitate-solve structure with data or testimonial proof.",
+    structure: "Pain point → Agitate → Solution → Evidence → CTA",
+    beats: ["Problem", "Agitate", "Solution", "Proof"],
+    exampleHook: "Tired of [pain point]? Here's what actually works...",
+    usageCount: 8,
+    avgEngagement: 3.2,
+    channels: ["LinkedIn"],
+    performanceHint: "Strong for product launches",
+    status: "active",
+    category: "launch",
+    lastUsedDaysAgo: 12,
+  },
+  {
+    id: "pat_008",
+    name: "Announcement → context → CTA",
+    description: "Direct announcement format for launches and news, with context and clear next step.",
+    structure: "Big news → Why it matters → What's next → CTA",
+    beats: ["News", "Context", "Impact", "CTA"],
+    exampleHook: "We just shipped [feature]. Here's why it matters...",
+    usageCount: 5,
+    avgEngagement: 2.8,
+    channels: ["LinkedIn", "X"],
+    performanceHint: "Best for major announcements",
+    status: "experimental",
+    category: "launch",
+    lastUsedDaysAgo: 21,
+  },
+  {
+    id: "pat_009",
+    name: "Myth vs reality",
+    description: "Challenge common misconceptions with evidence-backed truth.",
+    structure: "Common belief → Why it's wrong → The reality → Takeaway",
+    beats: ["Myth", "Problem", "Reality", "Lesson"],
+    exampleHook: "Everyone says [myth]. Here's why that's wrong...",
+    usageCount: 3,
+    avgEngagement: 4.0,
+    channels: ["LinkedIn"],
+    performanceHint: "Testing phase - early positive signals",
+    status: "deprecated",
+    category: "education",
+    lastUsedDaysAgo: 45,
   },
 ];
 
@@ -96,4 +165,28 @@ export function getPatternById(id: string): DemoPattern | undefined {
 
 export function getPatternsByChannel(channel: string): DemoPattern[] {
   return demoPatterns.filter((p) => p.channels.includes(channel));
+}
+
+export function getPatternsByCategory(category: PatternCategory): DemoPattern[] {
+  return demoPatterns.filter((p) => p.category === category);
+}
+
+/**
+ * Get top recommended patterns for a brand, ranked by:
+ * 1. Only active patterns
+ * 2. usageCount descending
+ * 3. lastUsedDaysAgo ascending (more recent wins)
+ */
+export function getTopPatterns(limit = 3): DemoPattern[] {
+  return demoPatterns
+    .filter((p) => p.status === "active")
+    .sort((a, b) => {
+      // Primary: usageCount descending
+      if (b.usageCount !== a.usageCount) {
+        return b.usageCount - a.usageCount;
+      }
+      // Tie-break: lastUsedDaysAgo ascending
+      return a.lastUsedDaysAgo - b.lastUsedDaysAgo;
+    })
+    .slice(0, limit);
 }
