@@ -8,6 +8,7 @@ import { SparkleIcon } from "./NavIcons";
 
 interface TopBarProps {
   brandId: string;
+  onAskKairo?: () => void;
 }
 
 function getUserInitial(): string {
@@ -15,7 +16,7 @@ function getUserInitial(): string {
   return "M";
 }
 
-export function TopBar({ brandId }: TopBarProps) {
+export function TopBar({ brandId, onAskKairo }: TopBarProps) {
   const pathname = usePathname();
   const brand = getBrandById(brandId);
   const sectionId = getSectionFromPath(pathname);
@@ -56,7 +57,7 @@ export function TopBar({ brandId }: TopBarProps) {
         <div className="flex items-center gap-3">
           {/* Ask Kairo button */}
           <button
-            onClick={() => console.log("Ask Kairo clicked")}
+            onClick={onAskKairo}
             className={[
               "flex items-center gap-1.5 px-3 py-1.5",
               "bg-white/15 hover:bg-white/25",
