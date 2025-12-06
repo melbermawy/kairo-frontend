@@ -25,7 +25,7 @@ function PersonaCard({ persona }: { persona: BrandPersona }) {
   const priorities = persona.goals.slice(0, 4);
 
   return (
-    <KCard className="p-3">
+    <KCard className="p-3 group kairo-transition-soft hover:shadow-elevated hover:bg-kairo-surface-soft">
       {/* Type label */}
       <p className="text-[10px] uppercase text-kairo-ink-500 tracking-wide mb-1">
         Persona
@@ -52,6 +52,7 @@ function PersonaCard({ persona }: { persona: BrandPersona }) {
               "rounded-(--kairo-radius-pill)",
               "text-xs",
               "bg-kairo-sand-100 text-kairo-ink-600",
+              "kairo-transition-fast group-hover:bg-kairo-sand-100 group-hover:text-kairo-ink-700 group-hover:opacity-100 opacity-80",
             ].join(" ")}
           >
             {priority}

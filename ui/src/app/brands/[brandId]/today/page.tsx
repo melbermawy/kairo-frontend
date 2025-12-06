@@ -1,5 +1,6 @@
-import { KCard, KTag } from "@/components/ui";
+import { KCard } from "@/components/ui";
 import { OpportunityCard } from "@/components/opportunities";
+import { TodayFocusStrip } from "@/components/today";
 import { getBrandById } from "@/demo/brands";
 import { getOpportunitiesByBrand } from "@/demo/opportunities";
 
@@ -45,6 +46,10 @@ export default async function TodayPage({ params }: TodayPageProps) {
     return b.score - a.score;
   });
 
+  // Get focus data from top opportunity
+  const topOpp = sortedOpportunities.find((o) => !o.isSnoozed) || sortedOpportunities[0];
+  const highScoreCount = opportunities.filter((o) => o.score >= 70 && !o.isSnoozed).length;
+
   return (
     <div className="space-y-5">
       {/* Page Header */}
@@ -57,11 +62,21 @@ export default async function TodayPage({ params }: TodayPageProps) {
         </p>
       </div>
 
+      {/* Focus Strip */}
+      {topOpp && (
+        <TodayFocusStrip
+          pillar={topOpp.pillar}
+          channel={brand.channels[0] || "LinkedIn"}
+          persona={topOpp.persona}
+          highScoreCount={highScoreCount}
+        />
+      )}
+
       {/* Two-column layout: 65/35 split */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         {/* Left: Opportunities Panel */}
         <div className="space-y-3">
-          <h2 className="text-kairo-ink-900 text-[15px] font-semibold">
+          <h2 className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide">
             Today&apos;s Opportunities
           </h2>
           <div className="space-y-2.5">

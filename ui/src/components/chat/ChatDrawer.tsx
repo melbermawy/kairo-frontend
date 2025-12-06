@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { QuickActions } from "./QuickActions";
@@ -24,6 +24,19 @@ export function ChatDrawer({
   onSendMessage,
 }: ChatDrawerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [shouldAnimateMessages, setShouldAnimateMessages] = useState(false);
+  const wasOpenRef = useRef(false);
+
+  // Track when drawer opens for the first time to trigger animation
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      setShouldAnimateMessages(true);
+      // Reset animation flag after animation completes
+      const timer = setTimeout(() => setShouldAnimateMessages(false), 300);
+      return () => clearTimeout(timer);
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -48,9 +61,13 @@ export function ChatDrawer({
         className={[
           "fixed inset-0 z-40",
           "bg-kairo-ink-900/20",
-          "transition-opacity duration-200",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         ].join(" ")}
+        style={{
+          transitionProperty: "opacity",
+          transitionDuration: "var(--kairo-motion-medium)",
+          transitionTimingFunction: "var(--kairo-ease-soft)",
+        }}
         onClick={onClose}
         aria-hidden="true"
       />
@@ -68,9 +85,13 @@ export function ChatDrawer({
           "border-l border-kairo-border-subtle",
           "shadow-elevated",
           // Animation
-          "transition-transform duration-200 ease-out",
           isOpen ? "lg:translate-x-0" : "lg:translate-x-full",
         ].join(" ")}
+        style={{
+          transitionProperty: "transform",
+          transitionDuration: "var(--kairo-motion-medium)",
+          transitionTimingFunction: "var(--kairo-ease-soft)",
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Kairo chat"
@@ -82,6 +103,7 @@ export function ChatDrawer({
           onClose={onClose}
           onSendMessage={onSendMessage}
           messagesEndRef={messagesEndRef}
+          shouldAnimateMessages={shouldAnimateMessages}
         />
       </div>
 
@@ -99,9 +121,13 @@ export function ChatDrawer({
           "rounded-t-(--kairo-radius-lg)",
           "shadow-elevated",
           // Animation
-          "transition-transform duration-200 ease-out",
           isOpen ? "translate-y-0" : "translate-y-full",
         ].join(" ")}
+        style={{
+          transitionProperty: "transform",
+          transitionDuration: "var(--kairo-motion-medium)",
+          transitionTimingFunction: "var(--kairo-ease-soft)",
+        }}
         role="dialog"
         aria-modal="true"
         aria-label="Kairo chat"
@@ -113,6 +139,7 @@ export function ChatDrawer({
           onClose={onClose}
           onSendMessage={onSendMessage}
           messagesEndRef={messagesEndRef}
+          shouldAnimateMessages={shouldAnimateMessages}
         />
       </div>
     </>
@@ -126,6 +153,7 @@ interface DrawerContentProps {
   onClose: () => void;
   onSendMessage: (text: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  shouldAnimateMessages: boolean;
 }
 
 function DrawerContent({
@@ -135,6 +163,7 @@ function DrawerContent({
   onClose,
   onSendMessage,
   messagesEndRef,
+  shouldAnimateMessages,
 }: DrawerContentProps) {
   return (
     <>
@@ -183,7 +212,12 @@ function DrawerContent({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div
+        className={[
+          "flex-1 overflow-y-auto px-4 py-4 space-y-3",
+          shouldAnimateMessages ? "animate-[kairo-fade-up_var(--kairo-motion-slow)_var(--kairo-ease-soft)]" : "",
+        ].join(" ")}
+      >
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}

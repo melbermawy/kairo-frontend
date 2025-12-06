@@ -35,7 +35,7 @@ export default async function PatternsPage({ params }: PatternsPageProps) {
         </p>
       </header>
 
-      {/* Recommendations section */}
+      {/* Recommendations section - hero */}
       {heroPattern && (
         <section className="space-y-3">
           <PatternRecommendationHero
@@ -46,8 +46,10 @@ export default async function PatternsPage({ params }: PatternsPageProps) {
         </section>
       )}
 
-      {/* Patterns list with filters */}
-      <PatternFilters patterns={patterns} />
+      {/* Patterns list with filters - clear separation from hero */}
+      <div className="pt-2">
+        <PatternFilters patterns={patterns} />
+      </div>
     </div>
   );
 }
