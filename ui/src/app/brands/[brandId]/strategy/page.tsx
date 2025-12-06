@@ -1,5 +1,11 @@
-import { KCard, KTag } from "@/components/ui";
-import { getBrandById } from "@/demo/brands";
+import { KCard } from "@/components/ui";
+import { getBrandById, getBrandStrategy } from "@/demo/brands";
+import {
+  BrandPositioningCard,
+  PersonasGrid,
+  PillarsRow,
+  TaboosCard,
+} from "@/components/strategy";
 
 interface StrategyPageProps {
   params: Promise<{ brandId: string }>;
@@ -8,113 +14,63 @@ interface StrategyPageProps {
 export default async function StrategyPage({ params }: StrategyPageProps) {
   const { brandId } = await params;
   const brand = getBrandById(brandId);
+  const strategy = getBrandStrategy(brandId);
 
   if (!brand) {
     return null;
   }
 
+  // Empty state if no strategy defined
+  if (!strategy) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <h1 className="text-xl font-semibold text-kairo-ink-900">
+            Brand Strategy
+          </h1>
+          <p className="text-sm text-kairo-ink-500 mt-1">
+            A living snapshot of how this brand shows up in the world.
+          </p>
+        </header>
+        <KCard className="py-12 text-center">
+          <p className="text-sm text-kairo-ink-500">
+            No strategy defined yet for {brand.name}.
+          </p>
+        </KCard>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-taupe-700">Brand Strategy</h1>
-        <p className="text-sm text-taupe-400 mt-1">
-          Brand brain summary for {brand.name}
+    <div className="space-y-8">
+      {/* Page header */}
+      <header>
+        <h1 className="text-xl font-semibold text-kairo-ink-900">
+          Brand Strategy
+        </h1>
+        <p className="text-sm text-kairo-ink-500 mt-1">
+          A living snapshot of how this brand shows up in the world.
         </p>
+        <p className="text-xs text-kairo-ink-500 mt-2">
+          Kairo uses this strategy to shape opportunities, patterns, and packages for this brand.
+        </p>
+      </header>
+
+      {/* Band 1: Positioning + Tone */}
+      <BrandPositioningCard
+        brandName={brand.name}
+        positioning={brand.positioning}
+        toneTags={strategy.voice.toneTags}
+      />
+
+      {/* Band 2: Personas + Pillars */}
+      <div className="space-y-6">
+        <PersonasGrid personas={strategy.personas} />
+        <PillarsRow pillars={strategy.pillars} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Positioning */}
-        <KCard elevated>
-          <h2 className="text-lg font-semibold text-taupe-700 mb-4">
-            Positioning
-          </h2>
-          <p className="text-sm text-taupe-700">{brand.positioning}</p>
-          <div className="mt-4">
-            <p className="text-xs text-taupe-400 uppercase tracking-wider mb-2">
-              Vertical
-            </p>
-            <KTag variant="outline">{brand.vertical}</KTag>
-          </div>
-        </KCard>
-
-        {/* Tone */}
-        <KCard elevated>
-          <h2 className="text-lg font-semibold text-taupe-700 mb-4">
-            Tone & Voice
-          </h2>
-          <p className="text-sm text-taupe-400 mb-3">
-            How {brand.name} communicates
-          </p>
-          <div className="flex gap-2 flex-wrap">
-            {brand.tone.map((t) => (
-              <KTag key={t}>{t}</KTag>
-            ))}
-          </div>
-        </KCard>
-
-        {/* Pillars */}
-        <KCard elevated>
-          <h2 className="text-lg font-semibold text-taupe-700 mb-4">
-            Content Pillars
-          </h2>
-          <p className="text-sm text-taupe-400 mb-3">
-            Core themes and topics
-          </p>
-          <div className="space-y-2">
-            {brand.pillars.map((pillar) => (
-              <div
-                key={pillar}
-                className="flex items-center gap-2 text-sm text-taupe-700"
-              >
-                <span className="w-2 h-2 rounded-full bg-aqua-500" />
-                {pillar}
-              </div>
-            ))}
-          </div>
-        </KCard>
-
-        {/* Personas */}
-        <KCard elevated>
-          <h2 className="text-lg font-semibold text-taupe-700 mb-4">
-            Target Personas
-          </h2>
-          <p className="text-sm text-taupe-400 mb-3">
-            Who we create content for
-          </p>
-          <div className="space-y-2">
-            {brand.personas.map((persona) => (
-              <div
-                key={persona}
-                className="flex items-center gap-2 text-sm text-taupe-700"
-              >
-                <span className="w-2 h-2 rounded-full bg-deep-600" />
-                {persona}
-              </div>
-            ))}
-          </div>
-        </KCard>
-
-        {/* Channels */}
-        <KCard elevated className="lg:col-span-2">
-          <h2 className="text-lg font-semibold text-taupe-700 mb-4">
-            Active Channels
-          </h2>
-          <div className="flex gap-4">
-            {brand.channels.map((channel) => (
-              <div
-                key={channel}
-                className="flex items-center gap-3 px-4 py-3 bg-sand-100 rounded-lg"
-              >
-                <span className="w-3 h-3 rounded-full bg-success-500" />
-                <span className="text-sm font-medium text-taupe-700">
-                  {channel}
-                </span>
-                <span className="text-xs text-taupe-400">Active</span>
-              </div>
-            ))}
-          </div>
-        </KCard>
-      </div>
+      {/* Band 3: Guardrails */}
+      <TaboosCard nevers={strategy.guardrails.neverDo} />
     </div>
   );
 }
