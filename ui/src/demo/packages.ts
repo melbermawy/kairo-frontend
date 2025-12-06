@@ -1,4 +1,5 @@
-export type PackageStatus = "draft" | "in_review" | "approved" | "scheduled" | "published";
+export type PackageStatus = "draft" | "in_review" | "scheduled" | "published";
+export type PackageChannel = "linkedin" | "x" | "youtube_script";
 
 export interface DemoVariant {
   id: string;
@@ -18,8 +19,10 @@ export interface DemoPackage {
   persona: string;
   pillar: string;
   status: PackageStatus;
-  channels: string[];
+  channels: PackageChannel[];
   variants: DemoVariant[];
+  owner: string;
+  lastUpdated: string;
 }
 
 export const demoPackages: DemoPackage[] = [
@@ -38,7 +41,7 @@ export const demoPackages: DemoPackage[] = [
     persona: "Data-driven CMO",
     pillar: "Attribution",
     status: "in_review",
-    channels: ["LinkedIn", "X"],
+    channels: ["linkedin", "x"],
     variants: [
       {
         id: "var_001",
@@ -62,6 +65,8 @@ export const demoPackages: DemoPackage[] = [
         status: "approved",
       },
     ],
+    owner: "Nadia",
+    lastUpdated: "2024-12-03T14:30:00Z",
   },
   {
     id: "pkg_002",
@@ -77,7 +82,7 @@ export const demoPackages: DemoPackage[] = [
     persona: "RevOps Lead",
     pillar: "Revenue Analytics",
     status: "draft",
-    channels: ["LinkedIn"],
+    channels: ["linkedin"],
     variants: [
       {
         id: "var_004",
@@ -87,6 +92,8 @@ export const demoPackages: DemoPackage[] = [
         status: "draft",
       },
     ],
+    owner: "Omar",
+    lastUpdated: "2024-12-01T09:15:00Z",
   },
   {
     id: "pkg_003",
@@ -102,7 +109,7 @@ export const demoPackages: DemoPackage[] = [
     persona: "Growth Marketer",
     pillar: "Data Integration",
     status: "published",
-    channels: ["LinkedIn", "X"],
+    channels: ["linkedin", "x"],
     variants: [
       {
         id: "var_005",
@@ -119,6 +126,46 @@ export const demoPackages: DemoPackage[] = [
         status: "approved",
       },
     ],
+    owner: "Nadia",
+    lastUpdated: "2024-11-28T16:45:00Z",
+  },
+  {
+    id: "pkg_006",
+    brandId: "brand_001",
+    opportunityId: null,
+    title: "Marketing ROI frameworks that actually work",
+    thesis: "Stop defending your budget with vanity metrics. Here's how to build an ROI case that resonates with finance.",
+    supportingPoints: [
+      "CFOs don't care about impressions—they care about pipeline contribution",
+      "The 3 metrics that matter most for marketing ROI conversations",
+      "How to connect top-of-funnel activity to bottom-line revenue",
+    ],
+    persona: "Data-driven CMO",
+    pillar: "Marketing ROI",
+    status: "scheduled",
+    channels: ["linkedin"],
+    variants: [],
+    owner: "Omar",
+    lastUpdated: "2024-12-04T11:00:00Z",
+  },
+  {
+    id: "pkg_007",
+    brandId: "brand_001",
+    opportunityId: null,
+    title: "Pipeline velocity: the metric your CEO actually cares about",
+    thesis: "Pipeline velocity tells the story of how efficiently you're turning marketing investment into revenue. Here's how to measure and improve it.",
+    supportingPoints: [
+      "What pipeline velocity is and why it matters",
+      "The four levers you can pull to improve it",
+      "How to present velocity improvements to leadership",
+    ],
+    persona: "RevOps Lead",
+    pillar: "Revenue Analytics",
+    status: "draft",
+    channels: ["linkedin", "x"],
+    variants: [],
+    owner: "Nadia",
+    lastUpdated: "2024-11-25T08:30:00Z",
   },
   // Shoreline Studio packages
   {
@@ -135,7 +182,7 @@ export const demoPackages: DemoPackage[] = [
     persona: "Aspiring Creator",
     pillar: "Behind the Scenes",
     status: "scheduled",
-    channels: ["X", "YouTube Shorts"],
+    channels: ["x", "youtube_script"],
     variants: [
       {
         id: "var_007",
@@ -145,6 +192,8 @@ export const demoPackages: DemoPackage[] = [
         status: "approved",
       },
     ],
+    owner: "Layla",
+    lastUpdated: "2024-12-02T13:20:00Z",
   },
   {
     id: "pkg_005",
@@ -160,7 +209,7 @@ export const demoPackages: DemoPackage[] = [
     persona: "Aspiring Creator",
     pillar: "Creative Process",
     status: "draft",
-    channels: ["X"],
+    channels: ["x"],
     variants: [
       {
         id: "var_008",
@@ -170,8 +219,23 @@ export const demoPackages: DemoPackage[] = [
         status: "draft",
       },
     ],
+    owner: "Layla",
+    lastUpdated: "2024-11-30T10:00:00Z",
   },
 ];
+
+// Map opportunity IDs to titles for display
+const opportunityTitleMap: Record<string, string> = {
+  opp_001: "Attribution dashboards are failing CMOs",
+  opp_002: "RevOps teams abandoning last-touch attribution",
+  opp_004: "Behind the viral moment",
+  opp_005: "The gear we actually use",
+};
+
+export function getOpportunityTitleById(oppId: string | null): string | null {
+  if (!oppId) return null;
+  return opportunityTitleMap[oppId] ?? null;
+}
 
 export function getPackagesByBrand(brandId: string): DemoPackage[] {
   return demoPackages.filter((p) => p.brandId === brandId);
