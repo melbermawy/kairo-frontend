@@ -1,6 +1,10 @@
-import { KCard, KTag } from "@/components/ui";
 import { getBrandById } from "@/demo/brands";
-import { getAllPatterns } from "@/demo/patterns";
+import { getAllPatterns, getTopPatterns } from "@/demo/patterns";
+import {
+  PatternFilters,
+  PatternRecommendationHero,
+  AlsoWorthTrying,
+} from "@/components/patterns";
 
 interface PatternsPageProps {
   params: Promise<{ brandId: string }>;
@@ -10,73 +14,40 @@ export default async function PatternsPage({ params }: PatternsPageProps) {
   const { brandId } = await params;
   const brand = getBrandById(brandId);
   const patterns = getAllPatterns();
+  const topPatterns = getTopPatterns(3);
 
   if (!brand) {
     return null;
   }
 
+  const heroPattern = topPatterns[0];
+  const alsoWorthTrying = topPatterns.slice(1, 3);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-taupe-700">Pattern Library</h1>
-        <p className="text-sm text-taupe-400 mt-1">
-          Content patterns that work for {brand.name}
+      {/* Page header */}
+      <header>
+        <h1 className="text-xl font-semibold text-kairo-ink-900">
+          Patterns Library
+        </h1>
+        <p className="text-sm text-kairo-ink-500 mt-1">
+          Reusable storytelling patterns for {brand.name}
         </p>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {patterns.map((pattern) => (
-          <KCard key={pattern.id} elevated>
-            <div className="flex items-start justify-between mb-3">
-              <h3 className="text-lg font-semibold text-taupe-700">
-                {pattern.name}
-              </h3>
-              <div className="flex gap-1">
-                {pattern.channels.map((channel) => (
-                  <KTag key={channel} variant="outline">
-                    {channel}
-                  </KTag>
-                ))}
-              </div>
-            </div>
+      {/* Recommendations section */}
+      {heroPattern && (
+        <section className="space-y-3">
+          <PatternRecommendationHero
+            pattern={heroPattern}
+            brandName={brand.name}
+          />
+          <AlsoWorthTrying patterns={alsoWorthTrying} />
+        </section>
+      )}
 
-            <p className="text-sm text-taupe-700 mb-4">{pattern.description}</p>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-taupe-400 uppercase tracking-wider mb-1">
-                  Structure
-                </p>
-                <p className="text-sm text-taupe-700">{pattern.structure}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-taupe-400 uppercase tracking-wider mb-1">
-                  Example Hook
-                </p>
-                <p className="text-sm text-taupe-700 italic">
-                  &ldquo;{pattern.exampleHook}&rdquo;
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-border flex items-center gap-6">
-              <div>
-                <p className="text-xs text-taupe-400">Usage</p>
-                <p className="text-lg font-semibold text-taupe-700">
-                  {pattern.usageCount}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-taupe-400">Avg Engagement</p>
-                <p className="text-lg font-semibold text-taupe-700">
-                  {pattern.avgEngagement}%
-                </p>
-              </div>
-            </div>
-          </KCard>
-        ))}
-      </div>
+      {/* Patterns list with filters */}
+      <PatternFilters patterns={patterns} />
     </div>
   );
 }
