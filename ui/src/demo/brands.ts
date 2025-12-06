@@ -200,7 +200,7 @@ export const demoBrands: DemoBrand[] = [
     tone: ["Story-driven", "Playful", "Honest"],
     channels: ["X", "YouTube Shorts"],
     positioning: "Authentic creative storytelling that connects brands with real audiences.",
-    pillars: ["Creative Process", "Behind the Scenes", "Industry Insights", "Client Stories"],
+    pillars: ["Creative Process", "Behind the Scenes", "Launch & Promos"],
     personas: ["Aspiring Creator", "Small Business Owner", "Marketing Manager"],
     voice: {
       summary: "Story-driven, playful, and refreshingly honest. We share the real process—wins, failures, and everything in between.",
@@ -267,6 +267,16 @@ export const demoBrands: DemoBrand[] = [
             "What I actually charge for brand work",
             "The gear I use vs. the gear I recommend",
             "Client said no to my first three ideas",
+          ],
+        },
+        {
+          id: "pillar_007",
+          name: "Launch & Promos",
+          summary: "Showcase client work and announce new offerings. Transformation reveals and launch announcements.",
+          exampleAngles: [
+            "This local bakery's brand was invisible. Here's what changed.",
+            "New course dropping next month—here's what's inside",
+            "Client rebrand reveal: before vs. after",
           ],
         },
       ],
