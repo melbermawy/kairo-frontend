@@ -3,35 +3,78 @@ import { OpportunityCard } from "@/components/opportunities";
 import { TodayFocusStrip } from "@/components/today";
 import { getBrandById } from "@/demo/brands";
 import { getOpportunitiesByBrand } from "@/demo/opportunities";
+import { getPackagesByBrand } from "@/demo/packages";
 
 interface TodayPageProps {
   params: Promise<{ brandId: string }>;
 }
 
-// Stubbed metrics with targets
-const weekMetrics = {
-  packagesInProgress: { current: 3, target: 5 },
-  postsScheduled: { current: 5, target: 8 },
-  publishedThisWeek: { current: 2, target: 4 },
-};
+// Compute metrics from actual packages
+function computeWeekMetrics(brandId: string) {
+  const packages = getPackagesByBrand(brandId);
 
-// Stubbed channel activity counts
-const channelCounts: Record<string, number> = {
-  LinkedIn: 3,
-  X: 2,
-  "YouTube Shorts": 1,
-};
+  // In progress = draft + in_review
+  const inProgress = packages.filter(
+    (p) => p.status === "draft" || p.status === "in_review"
+  ).length;
 
-// Stubbed insight
-const weeklyInsight = {
-  message: "You've skipped 3 high-score opportunities this week.",
-  type: "nudge" as const,
-};
+  // Scheduled
+  const scheduled = packages.filter((p) => p.status === "scheduled").length;
+
+  // Published this week (assume "published" status = this week for demo)
+  const published = packages.filter((p) => p.status === "published").length;
+
+  return {
+    packagesInProgress: { current: inProgress, target: 5 },
+    postsScheduled: { current: scheduled, target: 3 },
+    publishedThisWeek: { current: published, target: 4 },
+  };
+}
+
+// Compute channel activity from packages
+function computeChannelCounts(brandId: string): Record<string, number> {
+  const packages = getPackagesByBrand(brandId);
+  const counts: Record<string, number> = {};
+
+  const channelLabels: Record<string, string> = {
+    linkedin: "LinkedIn",
+    x: "X",
+    youtube_script: "YouTube Shorts",
+  };
+
+  for (const pkg of packages) {
+    for (const channel of pkg.channels) {
+      const label = channelLabels[channel] || channel;
+      counts[label] = (counts[label] || 0) + 1;
+    }
+  }
+
+  return counts;
+}
+
+// Brand-specific insights based on their story
+function getWeeklyInsight(brandId: string) {
+  if (brandId === "brand_001") {
+    // Acme: neglected RevOps Efficiency
+    return {
+      message: "2 high-score RevOps opportunities are sitting untouched. Your Attribution content is strong—time to balance the mix?",
+      type: "nudge" as const,
+    };
+  }
+  // Shoreline: neglected Launch & Promos
+  return {
+    message: "That bakery rebrand reveal has been in draft for 3 weeks. Launch content performs well—worth finishing?",
+    type: "nudge" as const,
+  };
+}
 
 export default async function TodayPage({ params }: TodayPageProps) {
   const { brandId } = await params;
   const brand = getBrandById(brandId);
   const opportunities = getOpportunitiesByBrand(brandId);
+  const weekMetrics = computeWeekMetrics(brandId);
+  const channelCounts = computeChannelCounts(brandId);
+  const weeklyInsight = getWeeklyInsight(brandId);
 
   if (!brand) {
     return null;

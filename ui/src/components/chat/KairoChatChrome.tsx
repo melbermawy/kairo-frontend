@@ -23,27 +23,27 @@ function formatTime(): string {
   });
 }
 
-// Canned responses based on section
+// Canned responses based on section - aligned with actual fixture data
 const cannedResponses: Record<string, string[]> = {
   today: [
-    "Based on your current pipeline, I'd recommend focusing on the Attribution Reality pillar today—it's been 5 days since your last post in that area.",
-    "Your engagement metrics are trending up. The 'Confessional story → lesson' pattern is performing well for you.",
-    "I see 2 high-signal opportunities that align with your RevOps Lead persona. Want me to draft packages for them?",
+    "I notice your RevOps Efficiency pillar has 2 high-score opportunities (85 and 78) sitting untouched. Your Attribution Reality content is strong—might be time to balance the mix.",
+    "The 'Confessional story → lesson' pattern is your top performer with 28 uses and 4.2 avg engagement. It's perfect for that CMO attribution angle you've pinned.",
+    "That '12 hours/week on manual reporting' opportunity scored 85—higher than most. RevOps Lead content could use some love.",
   ],
   packages: [
-    "Looking at your content pipeline, you have 3 packages in draft that could be ready to publish this week.",
-    "The 'Hot take → thread' pattern has been your best performer. Consider using it for the attribution topic.",
-    "I can help refine any of these packages. Just let me know which one you'd like to work on.",
+    "You've got a stale draft from Nov 18 on the RevOps reporting problem. That opportunity still has an 85 score—worth reviving?",
+    "Your pipeline: 2 drafts (1 stale), 2 in review, 1 scheduled, 1 published. The attribution piece with Melissa is in good shape.",
+    "The HubSpot competitive angle is in review. 'Contrarian hook → framework' pattern could work well for that one—it drives comments.",
   ],
   patterns: [
-    "Your top-performing patterns this month are 'Confessional story → lesson' and 'Hot take → thread'.",
-    "Based on your brand voice, I'd recommend experimenting with the 'Behind the curtain' pattern—it aligns well with your 'no buzzwords' tone.",
-    "The patterns library shows you haven't used 'Myth vs reality' in a while. It could be a good fit for your attribution content.",
+    "'Confessional story → lesson' is your #1 pattern (28 uses, 31% higher CTR on LinkedIn). 'Hot take → thread' is close behind with 5.1 avg engagement.",
+    "'Problem → solution → proof' has only 6 uses but performs well for RevOps content. Underused opportunity there.",
+    "The 'Transformation reveal' pattern is barely used (3 times) but gets high saves. Good for case study content.",
   ],
   strategy: [
-    "Your brand strategy is well-defined. The guardrails around competitor mentions are being respected across all content.",
-    "I notice your 'RevOps Efficiency' pillar has fewer recent posts. Want me to surface opportunities in that area?",
-    "Your personas are clearly defined. Jordan (RevOps Lead) content has been outperforming Priya (CMO) content by 23%.",
+    "Your brand voice is nailed: 'Direct, optimistic, analytical.' The guardrails around competitor mentions are holding—no dunking by name.",
+    "Jordan (RevOps Lead) and Priya (Data-Driven CMO) are your core personas. Most recent content has favored Priya—Jordan content could use attention.",
+    "Your 4 pillars are well-defined, but RevOps Efficiency is underrepresented in recent packages. Attribution Reality is carrying the load.",
   ],
 };
 
@@ -69,13 +69,13 @@ export function KairoChatChrome({
         {
           id: generateId(),
           author: "kairo",
-          text: `Looking at this week's opportunities for ${brandName}.`,
+          text: `Looking at this week for ${brandName}. You've got 4 high-score opportunities and 1 stale draft that needs attention.`,
           timestamp: formatTime(),
         },
         {
           id: generateId(),
           author: "kairo",
-          text: "You've published 2 of 4 target posts; want suggestions for what to schedule next?",
+          text: "Your Attribution Reality content is strong, but RevOps Efficiency has untouched opportunities. Want me to help balance the mix?",
           timestamp: formatTime(),
         },
       ];
