@@ -26,9 +26,9 @@ export function AppShell({ brandId, children }: AppShellProps) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-kairo-sand-50">
+    <div className="flex min-h-screen bg-kairo-aqua-50">
       <BrandSidebar currentBrandId={brandId} />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 ml-[240px]">
         <TopBar brandId={brandId} onAskKairo={handleAskKairo} />
         <div className="pt-12">
           <KairoChatChrome

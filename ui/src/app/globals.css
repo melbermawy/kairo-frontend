@@ -2,22 +2,26 @@
 
 :root {
   /* ========================================
-     KAIRO DESIGN TOKENS — North Coast Egypt
-     Shallow crystal water, warm sand, bright sky
+     KAIRO DESIGN TOKENS — Clean & Modern
+     Crisp neutrals, calm aqua accents, bright clarity
      ======================================== */
 
   /* --- A. Brand Aqua (Primary) --- */
-  /* Shallow, bright water — not dark teal */
-  --kairo-color-aqua-50:  #E6FAFB;
-  --kairo-color-aqua-100: #C4F1F5;
-  --kairo-color-aqua-300: #5FD6E2;
-  --kairo-color-aqua-500: #1AB8C8;   /* Main brand primary */
-  --kairo-color-aqua-600: #1097A5;   /* Hover / active */
+  /* Muted, sophisticated teal — calm and refined */
+  --kairo-color-aqua-50:  #F2F2F2;   /* Light neutral background */
+  --kairo-color-aqua-100: #E8F5F5;   /* Subtle tinted background */
+  --kairo-color-aqua-200: #D0EDED;   /* Border accent */
+  --kairo-color-aqua-300: #A8DCDC;   /* Light accent */
+  --kairo-color-aqua-500: #84CCCC;   /* Main brand primary - buttons */
+  --kairo-color-aqua-600: #3D8080;   /* Text / links - readable */
+  --kairo-color-aqua-700: #2D6666;   /* Darker hover / pressed text */
 
-  /* --- B. Sand / Background --- */
-  --kairo-color-sand-25:  #FFFBF7;
-  --kairo-color-sand-50:  #FFF6ED;   /* Main app background */
-  --kairo-color-sand-100: #F7EBDC;   /* Subtle sidebar / card tint */
+  /* --- B. Neutral Background (formerly Sand) --- */
+  --kairo-color-sand-25:  #F2F2F2;   /* Deprecated - use aqua-50 */
+  --kairo-color-sand-50:  #F2F2F2;   /* Deprecated - use aqua-50 */
+  --kairo-color-sand-75:  #E8F5F5;   /* Deprecated - use aqua-100 */
+  --kairo-color-sand-100: #E8F5F5;   /* Deprecated - use aqua-100 */
+  --kairo-color-sand-200: #D0EDED;   /* Deprecated - use aqua-200 */
 
   /* --- C. Ink (Text) --- */
   --kairo-color-ink-900: #152023;    /* Headings */
@@ -29,13 +33,13 @@
 
   /* --- D. Surfaces and Borders --- */
   --kairo-color-surface-plain:    #FFFFFF;
-  --kairo-color-surface-soft:     #FFFAF5;   /* Very light sand card */
-  --kairo-color-border-subtle:    #E4E1DA;
-  --kairo-color-border-strong:    #CFC8BC;
+  --kairo-color-surface-soft:     #FAFAFA;   /* Very light tinted card */
+  --kairo-color-border-subtle:    #E0E0E0;   /* Neutral gray border */
+  --kairo-color-border-strong:    #CCCCCC;   /* Stronger gray border */
 
   /* --- E. Semantic Tags (Today page) --- */
-  --kairo-color-tag-trend-bg:       #E6FAFB;
-  --kairo-color-tag-trend-fg:       #0E8D9A;
+  --kairo-color-tag-trend-bg:       #F2F2F2;
+  --kairo-color-tag-trend-fg:       #3D8080;
   --kairo-color-tag-evergreen-bg:   #E7F7EB;
   --kairo-color-tag-evergreen-fg:   #1D8A47;
   --kairo-color-tag-competitive-bg: #FFF3E0;
@@ -48,13 +52,13 @@
   /* --- F. State / Action Colors --- */
   --kairo-color-action-primary-bg:       var(--kairo-color-aqua-500);
   --kairo-color-action-primary-fg:       #FFFFFF;
-  --kairo-color-action-primary-hover-bg: var(--kairo-color-aqua-600);
+  --kairo-color-action-primary-hover-bg: #6BBCBC;
   --kairo-color-action-muted-bg:         #FFFFFF;
   --kairo-color-action-muted-border:     var(--kairo-color-border-subtle);
   --kairo-color-action-muted-fg:         var(--kairo-color-ink-700);
 
   /* --- Typography --- */
-  --kairo-font-family-sans: "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --kairo-font-family-sans: var(--font-lato), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* Font sizes */
   --kairo-font-size-xs:   11px;   /* Meta labels, pill text */
@@ -105,14 +109,18 @@
   /* Aqua scale */
   --color-kairo-aqua-50:  var(--kairo-color-aqua-50);
   --color-kairo-aqua-100: var(--kairo-color-aqua-100);
+  --color-kairo-aqua-200: var(--kairo-color-aqua-200);
   --color-kairo-aqua-300: var(--kairo-color-aqua-300);
   --color-kairo-aqua-500: var(--kairo-color-aqua-500);
   --color-kairo-aqua-600: var(--kairo-color-aqua-600);
+  --color-kairo-aqua-700: var(--kairo-color-aqua-700);
 
-  /* Sand scale */
-  --color-kairo-sand-25:  var(--kairo-color-sand-25);
-  --color-kairo-sand-50:  var(--kairo-color-sand-50);
-  --color-kairo-sand-100: var(--kairo-color-sand-100);
+  /* Sand scale (deprecated - mapped to neutral grays) */
+  --color-kairo-sand-25:  var(--kairo-color-aqua-50);
+  --color-kairo-sand-50:  var(--kairo-color-aqua-50);
+  --color-kairo-sand-75:  var(--kairo-color-aqua-100);
+  --color-kairo-sand-100: var(--kairo-color-aqua-100);
+  --color-kairo-sand-200: var(--kairo-color-aqua-200);
 
   /* Ink scale */
   --color-kairo-ink-900: var(--kairo-color-ink-900);
@@ -171,7 +179,7 @@
    ======================================== */
 
 body {
-  background-color: var(--kairo-color-sand-50);
+  background-color: var(--kairo-color-aqua-50);
   color: var(--kairo-color-ink-700);
   font-family: var(--kairo-font-family-sans);
   font-size: var(--kairo-font-size-md);
@@ -208,14 +216,14 @@ p {
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--kairo-color-aqua-500);
+  outline: 2px solid #84CCCC;
   outline-offset: 2px;
 }
 
 /* Selection */
 ::selection {
-  background-color: var(--kairo-color-aqua-100);
-  color: var(--kairo-color-aqua-600);
+  background-color: #D0EDED;
+  color: #2D6666;
 }
 
 /* ========================================
@@ -269,7 +277,7 @@ p {
   }
   40% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 4px rgba(0, 196, 204, 0.12);
+    box-shadow: 0 0 0 4px rgba(132, 204, 204, 0.12);
   }
 }
 

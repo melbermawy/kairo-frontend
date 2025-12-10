@@ -32,7 +32,7 @@ export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
   const currentSection = getSectionFromPath(pathname);
 
   return (
-    <aside className="w-[240px] shrink-0 bg-kairo-sand-100 border-r border-kairo-border-subtle flex flex-col">
+    <aside className="fixed left-0 top-0 bottom-0 w-[240px] shrink-0 bg-kairo-aqua-50 border-r border-kairo-border-subtle flex flex-col z-40">
       {/* Nav Content */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {/* Brands Section */}
@@ -91,7 +91,7 @@ function BrandNavItem({ brand, isActive, currentSection }: BrandNavItemProps) {
           "rounded-(--kairo-radius-md)",
           "kairo-transition-soft",
           "hover:translate-x-px",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-aqua-50",
           isActive
             ? "bg-kairo-surface-plain shadow-soft"
             : "hover:bg-kairo-surface-soft hover:shadow-elevated",
@@ -151,7 +151,7 @@ function SectionNavItem({ section, brandId, isActive }: SectionNavItemProps) {
           "hover:scale-[1.02]",
           "backdrop-blur-2xl",
           "overflow-hidden",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-aqua-50",
           // Liquid glass - transparent with subtle edges
           isActive
             ? [

@@ -23,7 +23,7 @@ export function TopBar({ brandId, onAskKairo }: TopBarProps) {
   const sectionLabel = getSectionLabel(sectionId);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center bg-kairo-aqua-500">
+    <header className="fixed top-0 left-[240px] right-0 h-12 z-50 flex items-center bg-kairo-aqua-500">
       <div className="w-full flex items-center justify-between">
         {/* Left: Wordmark + Context */}
         <div className="flex items-center gap-3 pl-6">
