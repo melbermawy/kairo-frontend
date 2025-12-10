@@ -23,10 +23,10 @@ export function TopBar({ brandId, onAskKairo }: TopBarProps) {
   const sectionLabel = getSectionLabel(sectionId);
 
   return (
-    <header className="h-12 shrink-0 flex items-center bg-kairo-aqua-500">
-      <div className="flex-1 flex items-center justify-between px-6 max-w-[1400px]">
+    <header className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center bg-kairo-aqua-500">
+      <div className="w-full flex items-center justify-between">
         {/* Left: Wordmark + Context */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pl-6">
           {/* Kairo wordmark */}
           <Link
             href="/"
@@ -54,22 +54,27 @@ export function TopBar({ brandId, onAskKairo }: TopBarProps) {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 pr-6">
           {/* Ask Kairo button */}
           <button
             onClick={onAskKairo}
             className={[
               "flex items-center gap-1.5 px-3 py-1.5",
-              "bg-white/15 hover:bg-white/25",
+              "relative",
+              "bg-white/10 hover:bg-white/20",
+              "backdrop-blur-md",
+              "border border-white/20 hover:border-white/30",
               "text-white text-[13px] font-medium",
-              "rounded-(--kairo-radius-pill)",
+              "rounded-full",
               "kairo-transition-soft",
-              "hover:scale-[1.02] hover:shadow-elevated",
+              "hover:scale-[1.02]",
+              "shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]",
+              "before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:pointer-events-none",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-aqua-500",
             ].join(" ")}
           >
-            <SparkleIcon className="w-3.5 h-3.5" />
-            <span>Ask Kairo</span>
+            <SparkleIcon className="w-3.5 h-3.5 relative z-10" />
+            <span className="relative z-10">Ask Kairo</span>
           </button>
 
           {/* User avatar placeholder */}

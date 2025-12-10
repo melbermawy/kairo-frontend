@@ -30,18 +30,20 @@ export function AppShell({ brandId, children }: AppShellProps) {
       <BrandSidebar currentBrandId={brandId} />
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar brandId={brandId} onAskKairo={handleAskKairo} />
-        <KairoChatChrome
-          brandName={brand?.name ?? "Brand"}
-          section={sectionLabel}
-          isOpen={isChatOpen}
-          onOpenChange={setIsChatOpen}
-        >
-          <main className="flex-1 overflow-auto">
-            <div className="max-w-6xl mx-auto px-6 py-6">
-              {children}
-            </div>
-          </main>
-        </KairoChatChrome>
+        <div className="pt-12">
+          <KairoChatChrome
+            brandName={brand?.name ?? "Brand"}
+            section={sectionLabel}
+            isOpen={isChatOpen}
+            onOpenChange={setIsChatOpen}
+          >
+            <main className="flex-1 overflow-auto">
+              <div className="px-10 py-8">
+                {children}
+              </div>
+            </main>
+          </KairoChatChrome>
+        </div>
       </div>
     </div>
   );
