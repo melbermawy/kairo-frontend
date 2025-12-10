@@ -23,16 +23,16 @@ export function TopBar({ brandId, onAskKairo }: TopBarProps) {
   const sectionLabel = getSectionLabel(sectionId);
 
   return (
-    <header className="fixed top-0 left-[240px] right-0 h-12 z-50 flex items-center bg-kairo-aqua-500">
+    <header className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center bg-kairo-aqua-500">
       <div className="w-full flex items-center justify-between">
         {/* Left: Wordmark + Context */}
         <div className="flex items-center gap-3 pl-6">
           {/* Kairo wordmark */}
           <Link
             href="/"
-            className="text-[15px] font-semibold text-white tracking-tight hover:opacity-90 transition-opacity"
+            className="text-[18px] text-white hover:opacity-90 transition-opacity font-[family-name:var(--font-lugrasimo)]"
           >
-            kairo
+            Kairo
           </Link>
 
           {/* Divider */}

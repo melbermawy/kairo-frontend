@@ -32,7 +32,7 @@ export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
   const currentSection = getSectionFromPath(pathname);
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-[240px] shrink-0 bg-kairo-aqua-50 border-r border-kairo-border-subtle flex flex-col z-40">
+    <aside className="fixed left-0 top-12 bottom-0 w-[240px] shrink-0 bg-kairo-aqua-50 border-r border-kairo-border-subtle flex flex-col z-40">
       {/* Nav Content */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {/* Brands Section */}

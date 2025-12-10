@@ -11,7 +11,8 @@ export function PersonasGrid({ personas }: PersonasGridProps) {
       <h3 className="text-xs font-medium text-kairo-ink-600">
         Personas
       </h3>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Max-width constrains single/double personas from stretching awkwardly */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-4xl">
         {personas.map((persona) => (
           <PersonaCard key={persona.id} persona={persona} />
         ))}

@@ -64,7 +64,7 @@ export default async function StrategyPage({ params }: StrategyPageProps) {
       />
 
       {/* Band 2: Personas + Pillars */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         <PersonasGrid personas={strategy.personas} />
         <PillarsRow pillars={strategy.pillars} />
       </div>
