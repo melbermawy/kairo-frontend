@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { PatternRow } from "./PatternRow";
 import type { DemoPattern, PatternCategory } from "@/demo/patterns";
 
@@ -38,7 +39,7 @@ export function PatternFilters({ patterns }: PatternFiltersProps) {
   return (
     <div className="space-y-4">
       {/* Category filter tabs */}
-      <div className="flex items-center gap-1 p-1 bg-kairo-sand-50 rounded-(--kairo-radius-md) w-fit">
+      <div className="relative flex items-center gap-1 p-1 bg-kairo-sand-50 rounded-(--kairo-radius-md) w-fit">
         {categoryTabs.map((tab) => {
           const isActive = activeCategory === tab.value;
           const count =
@@ -51,20 +52,33 @@ export function PatternFilters({ patterns }: PatternFiltersProps) {
               key={tab.value}
               onClick={() => setActiveCategory(tab.value)}
               className={[
-                "inline-flex items-center gap-1.5",
+                "relative inline-flex items-center gap-1.5",
                 "px-3 py-1.5",
                 "rounded-(--kairo-radius-sm)",
                 "text-xs font-medium",
-                "transition-all duration-100",
+                "transition-colors duration-200",
+                "z-10",
                 isActive
-                  ? "bg-kairo-surface-plain text-kairo-ink-900 shadow-soft"
+                  ? "text-kairo-ink-900"
                   : "text-kairo-ink-500 hover:text-kairo-ink-700",
               ].join(" ")}
             >
-              {tab.label}
+              {isActive && (
+                <motion.div
+                  layoutId="activeCategoryTab"
+                  className="absolute inset-0 bg-kairo-surface-plain rounded-(--kairo-radius-sm) shadow-soft"
+                  transition={{
+                    type: "spring",
+                    stiffness: 380,
+                    damping: 30,
+                  }}
+                  style={{ zIndex: -1 }}
+                />
+              )}
+              <span className="relative z-10">{tab.label}</span>
               <span
                 className={[
-                  "text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
+                  "relative z-10 text-[10px] px-1.5 py-0.5 rounded-full min-w-[18px] text-center transition-colors duration-200",
                   isActive
                     ? "bg-kairo-aqua-50 text-kairo-aqua-600"
                     : "bg-kairo-sand-100 text-kairo-ink-400",
