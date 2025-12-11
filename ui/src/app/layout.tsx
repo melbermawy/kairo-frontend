@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Lato, Lugrasimo } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
+const lato = Lato({
+  variable: "--font-lato",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "700", "900"],
+});
+
+const lugrasimo = Lugrasimo({
+  variable: "--font-lugrasimo",
+  subsets: ["latin"],
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -21,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${plusJakarta.variable} antialiased`}>
+      <body className={`${lato.variable} ${lugrasimo.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

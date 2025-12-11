@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { QuickActions } from "./QuickActions";
+import { TypingIndicator } from "./TypingIndicator";
 import type { ChatMessage as ChatMessageType } from "./types";
 
 interface ChatDrawerProps {
@@ -13,6 +14,7 @@ interface ChatDrawerProps {
   section: string;
   messages: ChatMessageType[];
   onSendMessage: (text: string) => void;
+  isTyping?: boolean;
 }
 
 export function ChatDrawer({
@@ -22,21 +24,9 @@ export function ChatDrawer({
   section,
   messages,
   onSendMessage,
+  isTyping = false,
 }: ChatDrawerProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [shouldAnimateMessages, setShouldAnimateMessages] = useState(false);
-  const wasOpenRef = useRef(false);
-
-  // Track when drawer opens for the first time to trigger animation
-  useEffect(() => {
-    if (isOpen && !wasOpenRef.current) {
-      setShouldAnimateMessages(true);
-      // Reset animation flag after animation completes
-      const timer = setTimeout(() => setShouldAnimateMessages(false), 300);
-      return () => clearTimeout(timer);
-    }
-    wasOpenRef.current = isOpen;
-  }, [isOpen]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -65,8 +55,8 @@ export function ChatDrawer({
         ].join(" ")}
         style={{
           transitionProperty: "opacity",
-          transitionDuration: "var(--kairo-motion-medium)",
-          transitionTimingFunction: "var(--kairo-ease-soft)",
+          transitionDuration: "300ms",
+          transitionTimingFunction: "ease-out",
         }}
         onClick={onClose}
         aria-hidden="true"
@@ -89,8 +79,8 @@ export function ChatDrawer({
         ].join(" ")}
         style={{
           transitionProperty: "transform",
-          transitionDuration: "var(--kairo-motion-medium)",
-          transitionTimingFunction: "var(--kairo-ease-soft)",
+          transitionDuration: "350ms",
+          transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
         role="dialog"
         aria-modal="true"
@@ -103,7 +93,7 @@ export function ChatDrawer({
           onClose={onClose}
           onSendMessage={onSendMessage}
           messagesEndRef={messagesEndRef}
-          shouldAnimateMessages={shouldAnimateMessages}
+          isTyping={isTyping}
         />
       </div>
 
@@ -125,8 +115,8 @@ export function ChatDrawer({
         ].join(" ")}
         style={{
           transitionProperty: "transform",
-          transitionDuration: "var(--kairo-motion-medium)",
-          transitionTimingFunction: "var(--kairo-ease-soft)",
+          transitionDuration: "350ms",
+          transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
         role="dialog"
         aria-modal="true"
@@ -139,7 +129,7 @@ export function ChatDrawer({
           onClose={onClose}
           onSendMessage={onSendMessage}
           messagesEndRef={messagesEndRef}
-          shouldAnimateMessages={shouldAnimateMessages}
+          isTyping={isTyping}
         />
       </div>
     </>
@@ -153,7 +143,7 @@ interface DrawerContentProps {
   onClose: () => void;
   onSendMessage: (text: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
-  shouldAnimateMessages: boolean;
+  isTyping?: boolean;
 }
 
 function DrawerContent({
@@ -163,14 +153,14 @@ function DrawerContent({
   onClose,
   onSendMessage,
   messagesEndRef,
-  shouldAnimateMessages,
+  isTyping = false,
 }: DrawerContentProps) {
   return (
     <>
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 bg-kairo-aqua-50 border-b border-kairo-aqua-100">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-kairo-ink-900">kairo</h2>
+          <h2 className="text-base text-kairo-ink-900 font-[family-name:var(--font-lugrasimo)]">Kairo</h2>
           <p className="text-xs text-kairo-ink-500 truncate">
             helping {brandName} – {section}
           </p>
@@ -212,15 +202,11 @@ function DrawerContent({
       </div>
 
       {/* Messages */}
-      <div
-        className={[
-          "flex-1 overflow-y-auto px-4 py-4 space-y-3",
-          shouldAnimateMessages ? "animate-[kairo-fade-up_var(--kairo-motion-slow)_var(--kairo-ease-soft)]" : "",
-        ].join(" ")}
-      >
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
+        {isTyping && <TypingIndicator />}
         <div ref={messagesEndRef} />
       </div>
 

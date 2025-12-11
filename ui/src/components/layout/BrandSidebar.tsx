@@ -32,7 +32,7 @@ export function BrandSidebar({ currentBrandId }: BrandSidebarProps) {
   const currentSection = getSectionFromPath(pathname);
 
   return (
-    <aside className="w-[240px] shrink-0 bg-kairo-sand-100 border-r border-kairo-border-subtle flex flex-col">
+    <aside className="fixed left-0 top-12 bottom-0 w-[240px] shrink-0 bg-kairo-aqua-50 border-r border-kairo-border-subtle flex flex-col z-40">
       {/* Nav Content */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
         {/* Brands Section */}
@@ -91,7 +91,7 @@ function BrandNavItem({ brand, isActive, currentSection }: BrandNavItemProps) {
           "rounded-(--kairo-radius-md)",
           "kairo-transition-soft",
           "hover:translate-x-px",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-aqua-50",
           isActive
             ? "bg-kairo-surface-plain shadow-soft"
             : "hover:bg-kairo-surface-soft hover:shadow-elevated",
@@ -145,36 +145,55 @@ function SectionNavItem({ section, brandId, isActive }: SectionNavItemProps) {
       <Link
         href={`/brands/${brandId}/${section.path}`}
         className={[
-          "group relative flex items-center gap-3 px-3 py-2",
-          "rounded-(--kairo-radius-pill)",
+          "group relative flex items-center gap-3 px-3 py-2.5",
+          "rounded-2xl",
           "kairo-transition-soft",
-          "hover:translate-x-px",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-sand-100",
+          "hover:scale-[1.02]",
+          "backdrop-blur-2xl",
+          "overflow-hidden",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-kairo-aqua-500 focus-visible:ring-offset-2 focus-visible:ring-offset-kairo-aqua-50",
+          // Liquid glass - transparent with subtle edges
           isActive
-            ? "bg-kairo-aqua-50 text-kairo-aqua-600"
-            : "text-kairo-ink-500 hover:bg-kairo-surface-soft hover:text-kairo-ink-700 hover:shadow-soft",
+            ? [
+                "bg-white/20",
+                "shadow-[inset_0_0.5px_0.5px_rgba(255,255,255,0.6),inset_0_-0.5px_0.5px_rgba(0,0,0,0.1),0_2px_8px_rgba(0,0,0,0.08)]",
+                "border border-white/40",
+              ].join(" ")
+            : [
+                "bg-white/10",
+                "shadow-[inset_0_0.5px_0.5px_rgba(255,255,255,0.4),inset_0_-0.5px_0.5px_rgba(0,0,0,0.05)]",
+                "border border-white/25",
+                "hover:bg-white/20",
+                "hover:border-white/40",
+                "hover:shadow-[inset_0_0.5px_0.5px_rgba(255,255,255,0.6),inset_0_-0.5px_0.5px_rgba(0,0,0,0.1),0_2px_8px_rgba(0,0,0,0.08)]",
+              ].join(" "),
         ].join(" ")}
       >
-        {/* Active indicator dot */}
-        {isActive && (
-          <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-1 bg-kairo-aqua-500 rounded-full" />
-        )}
+        {/* Subtle top edge highlight */}
+        <span 
+          className={[
+            "absolute inset-x-2 top-0 h-px pointer-events-none",
+            "bg-gradient-to-r from-transparent via-white/50 to-transparent",
+          ].join(" ")}
+        />
 
         {/* Icon */}
         <Icon
           className={[
-            "w-4 h-4 kairo-transition-fast",
+            "w-4 h-4 kairo-transition-fast relative z-10",
             isActive
               ? "text-kairo-aqua-600"
-              : "text-kairo-ink-400 group-hover:text-kairo-ink-600",
+              : "text-kairo-ink-500 group-hover:text-kairo-aqua-600",
           ].join(" ")}
         />
 
         {/* Label */}
         <span
           className={[
-            "text-[13px] kairo-transition-fast",
-            isActive ? "font-medium" : "font-normal",
+            "text-[13px] kairo-transition-fast relative z-10",
+            isActive 
+              ? "font-semibold text-kairo-ink-900" 
+              : "font-medium text-kairo-ink-600 group-hover:text-kairo-ink-800",
           ].join(" ")}
         >
           {section.label}

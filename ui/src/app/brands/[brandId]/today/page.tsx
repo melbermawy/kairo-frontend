@@ -113,35 +113,35 @@ export default async function TodayPage({ params }: TodayPageProps) {
         />
       )}
 
+      {/* Section heading */}
+      <h2 className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide">
+        Today&apos;s Opportunities
+      </h2>
+
       {/* Two-column layout: 65/35 split */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
         {/* Left: Opportunities Panel */}
-        <div className="space-y-3">
-          <h2 className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide">
-            Today&apos;s Opportunities
-          </h2>
+        <div className="space-y-2.5">
           {/*
             TODO: OpportunityCard accepts onPin, onSnooze, onOpenAsPackage callbacks
             that wire to demoClient stubs. To connect them, create a client wrapper
             component or use server actions when real backend is ready.
           */}
-          <div className="space-y-2.5">
-            {sortedOpportunities.map((opp) => (
-              <OpportunityCard
-                key={opp.id}
-                id={opp.id}
-                type={opp.type}
-                score={opp.score}
-                title={opp.title}
-                angle={opp.angle}
-                persona={opp.persona}
-                pillar={opp.pillar}
-                source={opp.source}
-                isPinned={opp.isPinned}
-                isSnoozed={opp.isSnoozed}
-              />
-            ))}
-          </div>
+          {sortedOpportunities.map((opp) => (
+            <OpportunityCard
+              key={opp.id}
+              id={opp.id}
+              type={opp.type}
+              score={opp.score}
+              title={opp.title}
+              angle={opp.angle}
+              persona={opp.persona}
+              pillar={opp.pillar}
+              source={opp.source}
+              isPinned={opp.isPinned}
+              isSnoozed={opp.isSnoozed}
+            />
+          ))}
         </div>
 
         {/* Right: Cockpit Rail */}

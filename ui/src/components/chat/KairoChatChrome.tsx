@@ -61,6 +61,7 @@ export function KairoChatChrome({
 }: KairoChatChromeProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   // Initialize with intro messages on first open
   const initializeMessages = useCallback(() => {
@@ -105,14 +106,24 @@ export function KairoChatChrome({
         timestamp: formatTime(),
       };
 
-      const kairoResponse: ChatMessage = {
-        id: generateId(),
-        author: "kairo",
-        text: getCannedResponse(section),
-        timestamp: formatTime(),
-      };
+      // Add user message immediately
+      setMessages((prev) => [...prev, userMessage]);
+      
+      // Show typing indicator
+      setIsTyping(true);
 
-      setMessages((prev) => [...prev, userMessage, kairoResponse]);
+      // Simulate AI response delay
+      setTimeout(() => {
+        const kairoResponse: ChatMessage = {
+          id: generateId(),
+          author: "kairo",
+          text: getCannedResponse(section),
+          timestamp: formatTime(),
+        };
+        
+        setIsTyping(false);
+        setMessages((prev) => [...prev, kairoResponse]);
+      }, 600 + Math.random() * 400); // 600-1000ms random delay
     },
     [section]
   );
@@ -127,6 +138,7 @@ export function KairoChatChrome({
         section={section}
         messages={messages}
         onSendMessage={handleSendMessage}
+        isTyping={isTyping}
       />
     </>
   );

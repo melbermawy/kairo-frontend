@@ -58,7 +58,7 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
         "rounded-(--kairo-radius-md)",
         "bg-kairo-surface-plain",
         "border border-kairo-border-subtle",
-        "px-4 py-2.5",
+        "px-4 py-4.5",
         "kairo-transition-soft",
         "hover:border-kairo-border-strong hover:shadow-elevated hover:scale-[1.005] hover:bg-kairo-surface-soft",
       ].join(" ")}
@@ -68,7 +68,7 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
         {/* LEFT SIDE: Package info (two lines) */}
         <div className="flex-1 min-w-0">
           {/* Line 1: Title + Status */}
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1.5">
             <Link
               href={`/brands/${brandId}/packages/${pkg.id}`}
               className={[
@@ -109,9 +109,9 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
         </div>
 
         {/* RIGHT SIDE: Channels, ownership, actions (two lines) */}
-        <div className="shrink-0 flex flex-col items-end gap-1">
+        <div className="shrink-0 flex flex-col items-end gap-2.5">
           {/* Line 1: Channels + Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {/* Channel chips */}
             <div className="flex items-center gap-1">
               {pkg.channels.map((channel) => (
@@ -122,9 +122,9 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
                     "px-1.5 py-0.5",
                     "rounded-(--kairo-radius-xs)",
                     "text-xs font-medium",
-                    "bg-kairo-sand-75 text-kairo-ink-600",
-                    "border border-kairo-border-subtle",
-                    "kairo-transition-fast group-hover:bg-kairo-sand-100 group-hover:text-kairo-ink-700",
+                    "bg-kairo-ink-50 text-kairo-ink-600",
+                    "border border-kairo-ink-150",
+                    "kairo-transition-fast group-hover:bg-[#F2F2F2] group-hover:text-[#3D8080] group-hover:border-[#84CCCC]",
                   ].join(" ")}
                 >
                   {channelLabels[channel]}

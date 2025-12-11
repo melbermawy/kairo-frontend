@@ -11,7 +11,8 @@ export function PillarsRow({ pillars }: PillarsRowProps) {
       <h3 className="text-xs font-medium text-kairo-ink-600">
         Content pillars
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Grid adapts: 1 col mobile, 2 cols tablet, 3 cols desktop (fits 3-4 pillars better) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {pillars.slice(0, 4).map((pillar) => (
           <KCard key={pillar.id} className="p-4 group kairo-transition-soft hover:shadow-elevated hover:bg-kairo-surface-soft">
             {/* Visual motif - small bar */}

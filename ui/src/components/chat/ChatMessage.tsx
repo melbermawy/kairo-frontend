@@ -14,6 +14,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
       className={[
         "flex flex-col gap-1",
         isUser ? "items-end" : "items-start",
+        // Simple fade-in animation
+        "animate-[kairo-fade-in_0.3s_ease-out]",
       ].join(" ")}
     >
       <div

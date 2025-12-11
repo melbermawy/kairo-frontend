@@ -27,9 +27,9 @@ const channelLabels: Record<PackageChannel, string> = {
 
 export function PackageSummaryCard({ pkg }: PackageSummaryCardProps) {
   return (
-    <KCard className="p-4">
+    <KCard className="p-6">
       {/* Title + Status */}
-      <div className="flex items-start justify-between gap-2 mb-3">
+      <div className="flex items-start justify-between gap-2 mb-4">
         <h3 className="text-sm font-semibold text-kairo-ink-900 leading-snug">
           {pkg.title}
         </h3>
@@ -39,8 +39,8 @@ export function PackageSummaryCard({ pkg }: PackageSummaryCardProps) {
       </div>
 
       {/* Thesis / Core argument */}
-      <div className="mb-4">
-        <p className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide mb-1">
+      <div className="mb-5">
+        <p className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide mb-1.5">
           Core Argument
         </p>
         <p className="text-sm text-kairo-ink-700 leading-relaxed">
@@ -49,7 +49,7 @@ export function PackageSummaryCard({ pkg }: PackageSummaryCardProps) {
       </div>
 
       {/* Supporting points */}
-      <div className="mb-4">
+      <div className="mb-5">
         <p className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide mb-2">
           Key Points
         </p>
