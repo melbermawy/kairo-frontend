@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+:root {
+  /* ========================================
+     KAIRO DESIGN TOKENS — Clean & Modern
+     Crisp neutrals, calm aqua accents, bright clarity
+     ======================================== */
+
+  /* --- A. Brand Aqua (Primary) --- */
+  /* Muted, sophisticated teal — calm and refined */
+  --kairo-color-aqua-50:  #F2F2F2;   /* Light neutral background */
+  --kairo-color-aqua-100: #E8F5F5;   /* Subtle tinted background */
+  --kairo-color-aqua-200: #D0EDED;   /* Border accent */
+  --kairo-color-aqua-300: #A8DCDC;   /* Light accent */
+  --kairo-color-aqua-500: #84CCCC;   /* Main brand primary - buttons */
+  --kairo-color-aqua-600: #3D8080;   /* Text / links - readable */
+  --kairo-color-aqua-700: #2D6666;   /* Darker hover / pressed text */
+
+  /* --- B. Neutral Background (formerly Sand) --- */
+  --kairo-color-sand-25:  #F2F2F2;   /* Deprecated - use aqua-50 */
+  --kairo-color-sand-50:  #F2F2F2;   /* Deprecated - use aqua-50 */
+  --kairo-color-sand-75:  #E8F5F5;   /* Deprecated - use aqua-100 */
+  --kairo-color-sand-100: #E8F5F5;   /* Deprecated - use aqua-100 */
+  --kairo-color-sand-200: #D0EDED;   /* Deprecated - use aqua-200 */
+
+  /* --- C. Ink (Text) --- */
+  --kairo-color-ink-900: #152023;    /* Headings */
+  --kairo-color-ink-700: #374247;    /* Primary body text */
+  --kairo-color-ink-600: #4A5459;    /* Nav hover text */
+  --kairo-color-ink-500: #6B757A;    /* Secondary text / labels */
+  --kairo-color-ink-400: #8A9499;    /* Nav icons default */
+  --kairo-color-ink-300: #AAB3B7;    /* Muted meta / dividers */
+
+  /* --- D. Surfaces and Borders --- */
+  --kairo-color-surface-plain:    #FFFFFF;
+  --kairo-color-surface-soft:     #FAFAFA;   /* Very light tinted card */
+  --kairo-color-border-subtle:    #E0E0E0;   /* Neutral gray border */
+  --kairo-color-border-strong:    #CCCCCC;   /* Stronger gray border */
+
+  /* --- E. Semantic Tags (Today page) --- */
+  --kairo-color-tag-trend-bg:       #F2F2F2;
+  --kairo-color-tag-trend-fg:       #3D8080;
+  --kairo-color-tag-evergreen-bg:   #E7F7EB;
+  --kairo-color-tag-evergreen-fg:   #1D8A47;
+  --kairo-color-tag-competitive-bg: #FFF3E0;
+  --kairo-color-tag-competitive-fg: #C76A1F;
+  --kairo-color-tag-campaign-bg:    #F3E8FF;
+  --kairo-color-tag-campaign-fg:    #6B21A8;
+  --kairo-color-tag-low-score-bg:   #FDEBEC;
+  --kairo-color-tag-low-score-fg:   #C0343C;
+
+  /* --- F. State / Action Colors --- */
+  --kairo-color-action-primary-bg:       var(--kairo-color-aqua-500);
+  --kairo-color-action-primary-fg:       #FFFFFF;
+  --kairo-color-action-primary-hover-bg: #6BBCBC;
+  --kairo-color-action-muted-bg:         #FFFFFF;
+  --kairo-color-action-muted-border:     var(--kairo-color-border-subtle);
+  --kairo-color-action-muted-fg:         var(--kairo-color-ink-700);
+
+  /* --- Typography --- */
+  --kairo-font-family-sans: var(--font-lato), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Font sizes */
+  --kairo-font-size-xs:   11px;   /* Meta labels, pill text */
+  --kairo-font-size-sm:   13px;   /* Secondary text */
+  --kairo-font-size-md:   15px;   /* Main body text */
+  --kairo-font-size-lg:   18px;   /* Section headings, card titles */
+  --kairo-font-size-xl:   22px;   /* Page titles */
+  --kairo-font-size-2xl:  28px;   /* Hero / rarely used */
+
+  /* Font weights */
+  --kairo-font-weight-regular:  400;
+  --kairo-font-weight-medium:   500;
+  --kairo-font-weight-semibold: 600;
+
+  /* Line heights */
+  --kairo-line-height-tight:   1.2;
+  --kairo-line-height-normal:  1.4;
+  --kairo-line-height-relaxed: 1.6;
+
+  /* --- Radii --- */
+  --kairo-radius-xs:   4px;
+  --kairo-radius-sm:   6px;
+  --kairo-radius-md:   10px;    /* Main card radius */
+  --kairo-radius-lg:   16px;
+  --kairo-radius-pill: 999px;   /* Tags, pill buttons */
+
+  /* --- Shadows (light, airy) --- */
+  --kairo-shadow-none:     none;
+  --kairo-shadow-soft:     0 6px 18px rgba(12, 48, 66, 0.04);
+  --kairo-shadow-elevated: 0 12px 30px rgba(12, 48, 66, 0.08);
+
+  /* --- Transitions (legacy) --- */
+  --kairo-transition-fast:   100ms ease-out;
+  --kairo-transition-normal: 150ms ease-out;
+  --kairo-transition-slow:   250ms ease-out;
+
+  /* --- Motion System (PR-11b) --- */
+  --kairo-motion-fast:   120ms;
+  --kairo-motion-medium: 200ms;
+  --kairo-motion-slow:   280ms;
+
+  --kairo-ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
+  --kairo-ease-soft:     cubic-bezier(0.33, 0.0, 0.2, 1);
+}
+
+/* Tailwind v4 theme integration */
+@theme inline {
+  /* Aqua scale */
+  --color-kairo-aqua-50:  var(--kairo-color-aqua-50);
+  --color-kairo-aqua-100: var(--kairo-color-aqua-100);
+  --color-kairo-aqua-200: var(--kairo-color-aqua-200);
+  --color-kairo-aqua-300: var(--kairo-color-aqua-300);
+  --color-kairo-aqua-500: var(--kairo-color-aqua-500);
+  --color-kairo-aqua-600: var(--kairo-color-aqua-600);
+  --color-kairo-aqua-700: var(--kairo-color-aqua-700);
+
+  /* Sand scale (deprecated - mapped to neutral grays) */
+  --color-kairo-sand-25:  var(--kairo-color-aqua-50);
+  --color-kairo-sand-50:  var(--kairo-color-aqua-50);
+  --color-kairo-sand-75:  var(--kairo-color-aqua-100);
+  --color-kairo-sand-100: var(--kairo-color-aqua-100);
+  --color-kairo-sand-200: var(--kairo-color-aqua-200);
+
+  /* Ink scale */
+  --color-kairo-ink-900: var(--kairo-color-ink-900);
+  --color-kairo-ink-700: var(--kairo-color-ink-700);
+  --color-kairo-ink-600: var(--kairo-color-ink-600);
+  --color-kairo-ink-500: var(--kairo-color-ink-500);
+  --color-kairo-ink-400: var(--kairo-color-ink-400);
+  --color-kairo-ink-300: var(--kairo-color-ink-300);
+
+  /* Surfaces */
+  --color-kairo-surface-plain: var(--kairo-color-surface-plain);
+  --color-kairo-surface-soft:  var(--kairo-color-surface-soft);
+
+  /* Borders */
+  --color-kairo-border-subtle: var(--kairo-color-border-subtle);
+  --color-kairo-border-strong: var(--kairo-color-border-strong);
+
+  /* Semantic tags */
+  --color-kairo-tag-trend-bg:       var(--kairo-color-tag-trend-bg);
+  --color-kairo-tag-trend-fg:       var(--kairo-color-tag-trend-fg);
+  --color-kairo-tag-evergreen-bg:   var(--kairo-color-tag-evergreen-bg);
+  --color-kairo-tag-evergreen-fg:   var(--kairo-color-tag-evergreen-fg);
+  --color-kairo-tag-competitive-bg: var(--kairo-color-tag-competitive-bg);
+  --color-kairo-tag-competitive-fg: var(--kairo-color-tag-competitive-fg);
+  --color-kairo-tag-campaign-bg:    var(--kairo-color-tag-campaign-bg);
+  --color-kairo-tag-campaign-fg:    var(--kairo-color-tag-campaign-fg);
+  --color-kairo-tag-low-score-bg:   var(--kairo-color-tag-low-score-bg);
+  --color-kairo-tag-low-score-fg:   var(--kairo-color-tag-low-score-fg);
+
+  /* Action colors */
+  --color-kairo-action-primary-bg:       var(--kairo-color-action-primary-bg);
+  --color-kairo-action-primary-fg:       var(--kairo-color-action-primary-fg);
+  --color-kairo-action-primary-hover-bg: var(--kairo-color-action-primary-hover-bg);
+  --color-kairo-action-muted-bg:         var(--kairo-color-action-muted-bg);
+  --color-kairo-action-muted-border:     var(--kairo-color-action-muted-border);
+  --color-kairo-action-muted-fg:         var(--kairo-color-action-muted-fg);
+
+  /* Shadows */
+  --shadow-none:     var(--kairo-shadow-none);
+  --shadow-soft:     var(--kairo-shadow-soft);
+  --shadow-elevated: var(--kairo-shadow-elevated);
+
+  /* Radii */
+  --radius-xs:   var(--kairo-radius-xs);
+  --radius-sm:   var(--kairo-radius-sm);
+  --radius-md:   var(--kairo-radius-md);
+  --radius-lg:   var(--kairo-radius-lg);
+  --radius-pill: var(--kairo-radius-pill);
+
+  /* Fonts */
+  --font-sans: var(--kairo-font-family-sans);
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+body {
+  background-color: var(--kairo-color-aqua-50);
+  color: var(--kairo-color-ink-700);
+  font-family: var(--kairo-font-family-sans);
+  font-size: var(--kairo-font-size-md);
+  font-weight: var(--kairo-font-weight-regular);
+  line-height: var(--kairo-line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography defaults */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--kairo-color-ink-900);
+  font-weight: var(--kairo-font-weight-semibold);
+  line-height: var(--kairo-line-height-tight);
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-size: var(--kairo-font-size-xl);
+}
+
+h2 {
+  font-size: var(--kairo-font-size-lg);
+}
+
+h3 {
+  font-size: var(--kairo-font-size-md);
+  font-weight: var(--kairo-font-weight-medium);
+}
+
+p {
+  line-height: var(--kairo-line-height-relaxed);
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid #84CCCC;
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background-color: #D0EDED;
+  color: #2D6666;
+}
+
+/* ========================================
+   MOTION SYSTEM (PR-11b)
+   ======================================== */
+
+/* Utility helpers - short and semantic */
+.kairo-motion-base {
+  transition-timing-function: var(--kairo-ease-standard);
+}
+
+.kairo-transition-soft {
+  transition-property: background-color, color, border-color, box-shadow, transform;
+  transition-duration: var(--kairo-motion-medium);
+  transition-timing-function: var(--kairo-ease-soft);
+}
+
+.kairo-transition-fast {
+  transition-property: background-color, color, box-shadow, transform;
+  transition-duration: var(--kairo-motion-fast);
+  transition-timing-function: var(--kairo-ease-soft);
+}
+
+/* Shared keyframes */
+@keyframes kairo-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes kairo-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kairo-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes kairo-breath {
+  0%, 80%, 100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+  40% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 4px rgba(132, 204, 204, 0.12);
+  }
+}
+
+@keyframes kairo-grow-width {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
