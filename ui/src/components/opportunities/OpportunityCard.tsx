@@ -1,5 +1,5 @@
 import { KButton, KTag } from "@/components/ui";
-import type { OpportunityType } from "@/demo/opportunities";
+import type { OpportunityType } from "@/lib/mockApi";
 
 const LOW_SCORE_THRESHOLD = 60;
 
@@ -14,7 +14,7 @@ export interface OpportunityCardProps {
   source: string;
   isPinned?: boolean;
   isSnoozed?: boolean;
-  // Action callbacks (wired to demoClient stubs)
+  // Action callbacks (wired to mockApi stubs)
   onPin?: () => void;
   onSnooze?: () => void;
   onOpenAsPackage?: () => void;
@@ -24,7 +24,6 @@ const typeLabels: Record<OpportunityType, string> = {
   trend: "Trend",
   evergreen: "Evergreen",
   competitive: "Competitive",
-  campaign: "Campaign",
 };
 
 export function OpportunityCard({

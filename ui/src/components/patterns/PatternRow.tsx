@@ -1,8 +1,8 @@
 import { KTag } from "@/components/ui";
-import type { DemoPattern, PatternStatus } from "@/demo/patterns";
+import type { Pattern, PatternStatus } from "@/lib/mockApi";
 
 interface PatternRowProps {
-  pattern: DemoPattern;
+  pattern: Pattern;
 }
 
 const statusVariants: Record<PatternStatus, "evergreen" | "campaign" | "danger"> = {

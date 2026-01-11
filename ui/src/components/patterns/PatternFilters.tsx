@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PatternRow } from "./PatternRow";
-import type { DemoPattern, PatternCategory } from "@/demo/patterns";
+import type { Pattern, PatternCategory } from "@/lib/mockApi";
 
 type FilterCategory = "all" | PatternCategory;
 
 interface PatternFiltersProps {
-  patterns: DemoPattern[];
+  patterns: Pattern[];
 }
 
 const categoryTabs: { value: FilterCategory; label: string }[] = [

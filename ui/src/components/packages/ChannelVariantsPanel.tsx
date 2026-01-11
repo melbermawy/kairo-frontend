@@ -2,51 +2,31 @@
 
 import { useState } from "react";
 import { KButton, KCard, KTag } from "@/components/ui";
-import type { DemoVariant, PackageChannel } from "@/demo/packages";
+import type { Variant } from "@/lib/mockApi";
 
 interface ChannelVariantsPanelProps {
-  channels: PackageChannel[];
-  variants: DemoVariant[];
+  channels: string[];
+  variants: Variant[];
 }
 
-const channelLabels: Record<PackageChannel, string> = {
+const channelLabels: Record<string, string> = {
   linkedin: "LinkedIn",
   x: "X",
-  youtube_script: "YouTube",
+  instagram: "Instagram",
+  tiktok: "TikTok",
 };
 
-const variantStatusVariants: Record<DemoVariant["status"], "muted" | "campaign" | "evergreen"> = {
+const variantStatusVariants: Record<string, "muted" | "campaign" | "evergreen"> = {
   draft: "muted",
   edited: "campaign",
   approved: "evergreen",
 };
 
-function formatRelativeTime(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "1d ago";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 14) return "1w ago";
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return `${Math.floor(diffDays / 30)}mo ago`;
-}
-
 export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPanelProps) {
-  const [activeChannel, setActiveChannel] = useState<PackageChannel>(channels[0] || "linkedin");
-
-  // Map channel names to the format used in variants
-  const channelDisplayMap: Record<PackageChannel, string> = {
-    linkedin: "LinkedIn",
-    x: "X",
-    youtube_script: "YouTube",
-  };
+  const [activeChannel, setActiveChannel] = useState<string>(channels[0] || "x");
 
   const filteredVariants = variants.filter(
-    (v) => v.channel === channelDisplayMap[activeChannel]
+    (v) => v.channel === activeChannel
   );
 
   return (
@@ -59,7 +39,7 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
         {channels.map((channel) => {
           const isActive = activeChannel === channel;
           const variantCount = variants.filter(
-            (v) => v.channel === channelDisplayMap[channel]
+            (v) => v.channel === channel
           ).length;
 
           return (
@@ -77,7 +57,7 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
                   : "text-kairo-ink-500 hover:text-kairo-ink-700",
               ].join(" ")}
             >
-              {channelLabels[channel]}
+              {channelLabels[channel] || channel}
               <span
                 className={[
                   "text-xs px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
@@ -105,7 +85,7 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
             />
           ))
         ) : (
-          <EmptyVariantsState channel={channelLabels[activeChannel]} />
+          <EmptyVariantsState channel={channelLabels[activeChannel] || activeChannel} />
         )}
 
         {/* Add variant button */}
@@ -119,7 +99,7 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
             "transition-colors",
           ].join(" ")}
         >
-          + Add {channelLabels[activeChannel]} variant
+          + Add {channelLabels[activeChannel] || activeChannel} variant
         </button>
       </div>
     </div>
@@ -127,15 +107,14 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
 }
 
 interface VariantCardProps {
-  variant: DemoVariant;
+  variant: Variant;
   index: number;
-  channel: PackageChannel;
+  channel: string;
 }
 
 function VariantCard({ variant, index, channel }: VariantCardProps) {
   const firstLine = variant.body.split("\n")[0];
-  // Stub updated time since variants don't have it in current data
-  const updatedAt = "2d ago";
+  const updatedAt = "2d ago"; // Stub since not in current data
   const owner = "Nadia"; // Stub owner
 
   return (
@@ -145,11 +124,16 @@ function VariantCard({ variant, index, channel }: VariantCardProps) {
           {/* Variant header */}
           <div className="flex items-center gap-2 mb-2">
             <span className="text-sm font-medium text-kairo-ink-900">
-              {channelLabels[channel]} v{index}
+              {channelLabels[channel] || channel} v{index}
             </span>
-            <KTag variant={variantStatusVariants[variant.status]} className="uppercase text-xs">
+            <KTag variant={variantStatusVariants[variant.status] || "muted"} className="uppercase text-xs">
               {variant.status}
             </KTag>
+            {variant.score && (
+              <span className="text-xs text-kairo-ink-500">
+                Score: {variant.score}
+              </span>
+            )}
           </div>
 
           {/* Summary / first line */}
@@ -159,8 +143,12 @@ function VariantCard({ variant, index, channel }: VariantCardProps) {
 
           {/* Meta */}
           <div className="flex items-center gap-1.5 text-xs text-kairo-ink-500">
-            <span>Pattern: {variant.pattern}</span>
-            <span className="text-kairo-ink-300">·</span>
+            {variant.notes && (
+              <>
+                <span className="truncate max-w-[200px]">{variant.notes}</span>
+                <span className="text-kairo-ink-300">·</span>
+              </>
+            )}
             <span>Last edited by {owner}</span>
             <span className="text-kairo-ink-300">·</span>
             <span>{updatedAt}</span>

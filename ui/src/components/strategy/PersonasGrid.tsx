@@ -1,8 +1,16 @@
 import { KCard } from "@/components/ui";
-import type { BrandPersona } from "@/demo/brands";
+
+// UI-specific persona shape (adapted from brand data in page components)
+interface Persona {
+  id: string;
+  name: string;
+  role: string;
+  summary: string;
+  goals: string[];
+}
 
 interface PersonasGridProps {
-  personas: BrandPersona[];
+  personas: Persona[];
 }
 
 export function PersonasGrid({ personas }: PersonasGridProps) {
@@ -21,7 +29,7 @@ export function PersonasGrid({ personas }: PersonasGridProps) {
   );
 }
 
-function PersonaCard({ persona }: { persona: BrandPersona }) {
+function PersonaCard({ persona }: { persona: Persona }) {
   // Use goals as priorities, limit to 3-4 for density
   const priorities = persona.goals.slice(0, 4);
 

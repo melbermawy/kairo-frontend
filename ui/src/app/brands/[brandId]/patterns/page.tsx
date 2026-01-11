@@ -1,4 +1,4 @@
-import { demoClient } from "@/lib/demoClient";
+import { mockApi, NotFoundError } from "@/lib/mockApi";
 import {
   PatternFilters,
   PatternRecommendationHero,
@@ -11,13 +11,19 @@ interface PatternsPageProps {
 
 export default async function PatternsPage({ params }: PatternsPageProps) {
   const { brandId } = await params;
-  const brand = demoClient.getBrand(brandId);
-  const patterns = demoClient.listPatterns();
-  const topPatterns = demoClient.getTopPatterns(3);
 
-  if (!brand) {
-    return null;
+  let brand;
+  try {
+    brand = mockApi.getBrand(brandId);
+  } catch (e) {
+    if (e instanceof NotFoundError) {
+      return null;
+    }
+    throw e;
   }
+
+  const patterns = mockApi.listPatterns();
+  const topPatterns = mockApi.getTopPatterns(3);
 
   const heroPattern = topPatterns[0];
   const alsoWorthTrying = topPatterns.slice(1, 3);

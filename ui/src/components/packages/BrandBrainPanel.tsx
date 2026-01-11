@@ -1,10 +1,17 @@
 import { KCard, KTag } from "@/components/ui";
-import type { BrandVoice } from "@/demo/brands";
-import type { DemoPattern } from "@/demo/patterns";
+import type { Pattern } from "@/lib/mockApi";
+
+interface BrandVoice {
+  summary: string;
+  toneTags: string[];
+  nevers: string[];
+  primaryChannel?: string;
+  primaryPersona?: string;
+}
 
 interface BrandBrainPanelProps {
   voice: BrandVoice;
-  patterns: DemoPattern[];
+  patterns: Pattern[];
 }
 
 export function BrandBrainPanel({ voice, patterns }: BrandBrainPanelProps) {
@@ -58,7 +65,7 @@ function VoiceCard({ voice }: { voice: BrandVoice }) {
   );
 }
 
-function PatternsCard({ patterns }: { patterns: DemoPattern[] }) {
+function PatternsCard({ patterns }: { patterns: Pattern[] }) {
   // Show first 3 patterns as suggestions
   const suggestedPatterns = patterns.slice(0, 3);
 
@@ -77,7 +84,7 @@ function PatternsCard({ patterns }: { patterns: DemoPattern[] }) {
   );
 }
 
-function PatternRow({ pattern }: { pattern: DemoPattern }) {
+function PatternRow({ pattern }: { pattern: Pattern }) {
   return (
     <div className="space-y-1.5">
       {/* Pattern name */}

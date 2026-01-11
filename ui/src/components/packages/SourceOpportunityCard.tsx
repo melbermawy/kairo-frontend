@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { KCard, KTag } from "@/components/ui";
-import type { DemoOpportunity, OpportunityType } from "@/demo/opportunities";
+import type { OpportunityWithEvidence } from "@/lib/mockApi";
 
 interface SourceOpportunityCardProps {
-  opportunity: DemoOpportunity;
+  opportunity: OpportunityWithEvidence;
   brandId: string;
 }
 
-const typeLabels: Record<OpportunityType, string> = {
+const typeLabels: Record<string, string> = {
   trend: "Trend",
   evergreen: "Evergreen",
   competitive: "Competitive",
-  campaign: "Campaign",
 };
 
 export function SourceOpportunityCard({ opportunity, brandId }: SourceOpportunityCardProps) {
@@ -23,8 +22,8 @@ export function SourceOpportunityCard({ opportunity, brandId }: SourceOpportunit
 
       {/* Type + Score row */}
       <div className="flex items-center justify-between mb-2">
-        <KTag variant={opportunity.type}>
-          {typeLabels[opportunity.type]}
+        <KTag variant={opportunity.type as "trend" | "evergreen" | "competitive"}>
+          {typeLabels[opportunity.type] || opportunity.type}
         </KTag>
         <span
           className={[
@@ -46,9 +45,9 @@ export function SourceOpportunityCard({ opportunity, brandId }: SourceOpportunit
         {opportunity.title}
       </p>
 
-      {/* Angle / Why now */}
+      {/* Hook / Why now */}
       <p className="text-xs text-kairo-ink-600 line-clamp-2 mb-3">
-        {opportunity.angle}
+        {opportunity.hook}
       </p>
 
       {/* Link to Today */}

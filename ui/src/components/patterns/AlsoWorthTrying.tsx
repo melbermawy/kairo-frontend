@@ -1,7 +1,7 @@
-import type { DemoPattern } from "@/demo/patterns";
+import type { Pattern } from "@/lib/mockApi";
 
 interface AlsoWorthTryingProps {
-  patterns: DemoPattern[];
+  patterns: Pattern[];
 }
 
 export function AlsoWorthTrying({ patterns }: AlsoWorthTryingProps) {

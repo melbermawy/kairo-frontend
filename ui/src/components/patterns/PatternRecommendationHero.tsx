@@ -1,8 +1,8 @@
 import { KCard, KButton } from "@/components/ui";
-import type { DemoPattern } from "@/demo/patterns";
+import type { Pattern } from "@/lib/mockApi";
 
 interface PatternRecommendationHeroProps {
-  pattern: DemoPattern;
+  pattern: Pattern;
   brandName: string;
 }
 

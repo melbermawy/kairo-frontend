@@ -8,7 +8,7 @@ export const navSections: NavSection[] = [
   { id: "today", label: "Today", path: "today" },
   { id: "packages", label: "Content", path: "packages" },
   { id: "patterns", label: "Patterns", path: "patterns" },
-  { id: "strategy", label: "Strategy", path: "strategy" },
+  { id: "strategy", label: "Brand Playbook", path: "strategy" },
 ];
 
 export function getSectionFromPath(pathname: string): string {

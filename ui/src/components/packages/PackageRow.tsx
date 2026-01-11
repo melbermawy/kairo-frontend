@@ -1,55 +1,40 @@
 "use client";
 
 import { KButton, KTag } from "@/components/ui";
-import type { DemoPackage, PackageStatus, PackageChannel } from "@/demo/packages";
+import type { ContentPackage } from "@/lib/mockApi";
 import Link from "next/link";
 
 interface PackageRowProps {
-  pkg: DemoPackage;
+  pkg: ContentPackage;
   brandId: string;
   opportunityTitle?: string | null;
-  // Action callbacks (wired to demoClient stubs)
   onEdit?: () => void;
   onOpen?: () => void;
 }
 
-const statusVariants: Record<PackageStatus, "muted" | "campaign" | "default" | "evergreen"> = {
-  draft: "muted",
-  in_review: "campaign",
-  scheduled: "default",
-  published: "evergreen",
+// Map quality band to tag variants
+const bandVariants: Record<string, "muted" | "campaign" | "default" | "evergreen"> = {
+  good: "evergreen",
+  partial: "campaign",
+  needs_work: "muted",
 };
 
-const statusLabels: Record<PackageStatus, string> = {
-  draft: "Draft",
-  in_review: "In Review",
-  scheduled: "Scheduled",
-  published: "Published",
+const bandLabels: Record<string, string> = {
+  good: "Good",
+  partial: "In Progress",
+  needs_work: "Needs Work",
 };
 
-const channelLabels: Record<PackageChannel, string> = {
+const channelLabels: Record<string, string> = {
   linkedin: "LinkedIn",
   x: "X",
-  youtube_script: "YouTube",
+  instagram: "Instagram",
+  tiktok: "TikTok",
 };
-
-function formatRelativeTime(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "1d ago";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 14) return "1w ago";
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  if (diffDays < 60) return "1mo ago";
-  return `${Math.floor(diffDays / 30)}mo ago`;
-}
 
 export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: PackageRowProps) {
   const variantCount = pkg.variants.length;
+  const channels = [...new Set(pkg.deliverables.map((d) => d.channel))];
 
   return (
     <article
@@ -67,7 +52,7 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
       <div className="flex gap-4">
         {/* LEFT SIDE: Package info (two lines) */}
         <div className="flex-1 min-w-0">
-          {/* Line 1: Title + Status */}
+          {/* Line 1: Title + Quality band */}
           <div className="flex items-center gap-2 mb-1.5">
             <Link
               href={`/brands/${brandId}/packages/${pkg.id}`}
@@ -80,12 +65,15 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
             >
               {pkg.title}
             </Link>
-            <KTag variant={statusVariants[pkg.status]} className="shrink-0 uppercase text-[10px] tracking-wide kairo-transition-fast group-hover:opacity-100 opacity-90">
-              {statusLabels[pkg.status]}
+            <KTag
+              variant={bandVariants[pkg.quality.band] || "muted"}
+              className="shrink-0 uppercase text-[10px] tracking-wide kairo-transition-fast group-hover:opacity-100 opacity-90"
+            >
+              {bandLabels[pkg.quality.band] || pkg.quality.band}
             </KTag>
           </div>
 
-          {/* Line 2: Meta (origin, persona, pillar, variants) - de-emphasized */}
+          {/* Line 2: Meta (origin, format, variants) */}
           <div className="flex items-center gap-1.5 text-xs text-kairo-ink-400">
             {opportunityTitle && (
               <>
@@ -94,9 +82,7 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
                 <span className="text-kairo-ink-300">·</span>
               </>
             )}
-            <span className="truncate">{pkg.persona}</span>
-            <span className="text-kairo-ink-300">·</span>
-            <span className="truncate">{pkg.pillar}</span>
+            <span className="truncate capitalize">{pkg.format.replace(/_/g, " ")}</span>
             {variantCount > 0 && (
               <>
                 <span className="text-kairo-ink-300">·</span>
@@ -108,13 +94,13 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
           </div>
         </div>
 
-        {/* RIGHT SIDE: Channels, ownership, actions (two lines) */}
+        {/* RIGHT SIDE: Channels, actions */}
         <div className="shrink-0 flex flex-col items-end gap-2.5">
           {/* Line 1: Channels + Actions */}
           <div className="flex items-center gap-2.5">
             {/* Channel chips */}
             <div className="flex items-center gap-1">
-              {pkg.channels.map((channel) => (
+              {channels.map((channel) => (
                 <span
                   key={channel}
                   className={[
@@ -124,10 +110,10 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
                     "text-xs font-medium",
                     "bg-kairo-ink-50 text-kairo-ink-600",
                     "border border-kairo-ink-150",
-                    "kairo-transition-fast group-hover:bg-[#F2F2F2] group-hover:text-[#3D8080] group-hover:border-[#84CCCC]",
+                    "kairo-transition-fast group-hover:bg-kairo-bg-hover group-hover:text-kairo-accent-600 group-hover:border-kairo-accent-400",
                   ].join(" ")}
                 >
-                  {channelLabels[channel]}
+                  {channelLabels[channel] || channel}
                 </span>
               ))}
             </div>
@@ -143,11 +129,15 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
             </div>
           </div>
 
-          {/* Line 2: Owner + Date */}
+          {/* Line 2: Quality score */}
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="font-medium text-kairo-ink-600">{pkg.owner}</span>
-            <span className="text-kairo-ink-400">·</span>
-            <span className="text-kairo-ink-400">{formatRelativeTime(pkg.lastUpdated)}</span>
+            <span className="font-medium text-kairo-ink-600">Score: {pkg.quality.score}</span>
+            {pkg.quality.issues.length > 0 && (
+              <>
+                <span className="text-kairo-ink-400">·</span>
+                <span className="text-kairo-ink-400">{pkg.quality.issues.length} issue{pkg.quality.issues.length !== 1 ? "s" : ""}</span>
+              </>
+            )}
           </div>
         </div>
       </div>

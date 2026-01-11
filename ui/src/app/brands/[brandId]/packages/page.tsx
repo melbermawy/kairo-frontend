@@ -1,7 +1,7 @@
 import { KButton } from "@/components/ui";
 import { PackagesTable } from "@/components/packages";
 import { ContentPipelineStrip } from "@/components/content";
-import { demoClient } from "@/lib/demoClient";
+import { mockApi, NotFoundError } from "@/lib/mockApi";
 
 interface PackagesPageProps {
   params: Promise<{ brandId: string }>;
@@ -9,29 +9,30 @@ interface PackagesPageProps {
 
 export default async function PackagesPage({ params }: PackagesPageProps) {
   const { brandId } = await params;
-  const brand = demoClient.getBrand(brandId);
-  const packages = demoClient.listPackages(brandId);
 
-  if (!brand) {
-    return null;
+  let brand;
+  try {
+    brand = mockApi.getBrand(brandId);
+  } catch (e) {
+    if (e instanceof NotFoundError) {
+      return null;
+    }
+    throw e;
   }
 
-  // Compute pipeline counts
+  const packages = mockApi.listPackages(brandId);
+
+  // TODO(spec): status not in package spec, using quality.band as proxy
+  // For now, all packages are "in progress" (draft equivalent)
   const counts = {
-    draft: packages.filter((p) => p.status === "draft").length,
-    inReview: packages.filter((p) => p.status === "in_review").length,
-    scheduled: packages.filter((p) => p.status === "scheduled").length,
-    published: packages.filter((p) => p.status === "published").length,
+    draft: packages.length,
+    inReview: 0,
+    scheduled: 0,
+    published: 0,
   };
 
-  // Compute at-risk count (drafts older than 14 days)
-  const fourteenDaysAgo = new Date();
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  const atRiskCount = packages.filter((p) => {
-    if (p.status !== "draft") return false;
-    const updated = new Date(p.lastUpdated);
-    return updated < fourteenDaysAgo;
-  }).length;
+  // TODO(spec): no lastUpdated in package spec, at-risk not computable
+  const atRiskCount = 0;
 
   return (
     <div className="space-y-6">

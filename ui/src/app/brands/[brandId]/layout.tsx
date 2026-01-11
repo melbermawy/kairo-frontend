@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { demoClient } from "@/lib/demoClient";
+import { api } from "@/lib/api";
 import { AppShell } from "@/components/layout/AppShell";
 
 interface BrandLayoutProps {
@@ -10,11 +10,18 @@ interface BrandLayoutProps {
 
 export default async function BrandLayout({ children, params }: BrandLayoutProps) {
   const { brandId } = await params;
-  const brand = demoClient.getBrand(brandId);
 
-  if (!brand) {
+  // Fetch brands list and validate current brand exists
+  const brands = await api.listBrands();
+  const brandExists = brands.some((b) => b.id === brandId);
+
+  if (!brandExists) {
     notFound();
   }
 
-  return <AppShell brandId={brandId}>{children}</AppShell>;
+  return (
+    <AppShell brandId={brandId} initialBrands={brands}>
+      {children}
+    </AppShell>
+  );
 }

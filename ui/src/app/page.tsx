@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { DEFAULT_BRAND_ID } from "@/lib/demoClient";
+import { mockApi } from "@/lib/mockApi";
 
 export default function HomePage() {
-  redirect(`/brands/${DEFAULT_BRAND_ID}/today`);
+  redirect(`/brands/${mockApi.DEFAULT_BRAND_ID}/today`);
 }

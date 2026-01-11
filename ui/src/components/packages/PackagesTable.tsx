@@ -4,21 +4,21 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { PackageRow } from "./PackageRow";
 import { KButton } from "@/components/ui";
-import { demoClient, type DemoPackage, type PackageStatus } from "@/lib/demoClient";
+import { mockApi, type ContentPackage } from "@/lib/mockApi";
 
-type FilterStatus = "all" | PackageStatus;
+// Filter status - using quality band as proxy since spec doesn't have status field
+type FilterStatus = "all" | "good" | "partial" | "needs_work";
 
 interface PackagesTableProps {
-  packages: DemoPackage[];
+  packages: ContentPackage[];
   brandId: string;
 }
 
 const filterTabs: { value: FilterStatus; label: string }[] = [
   { value: "all", label: "All" },
-  { value: "draft", label: "Draft" },
-  { value: "in_review", label: "In Review" },
-  { value: "scheduled", label: "Scheduled" },
-  { value: "published", label: "Published" },
+  { value: "good", label: "Good" },
+  { value: "partial", label: "In Progress" },
+  { value: "needs_work", label: "Needs Work" },
 ];
 
 export function PackagesTable({ packages, brandId }: PackagesTableProps) {
@@ -27,15 +27,15 @@ export function PackagesTable({ packages, brandId }: PackagesTableProps) {
   const filteredPackages =
     activeFilter === "all"
       ? packages
-      : packages.filter((p) => p.status === activeFilter);
+      : packages.filter((p) => p.quality.band === activeFilter);
 
-  // Count packages per status for the filter badges
-  const statusCounts = packages.reduce(
+  // Count packages per quality band for the filter badges
+  const bandCounts = packages.reduce(
     (acc, pkg) => {
-      acc[pkg.status] = (acc[pkg.status] || 0) + 1;
+      acc[pkg.quality.band] = (acc[pkg.quality.band] || 0) + 1;
       return acc;
     },
-    {} as Record<PackageStatus, number>
+    {} as Record<string, number>
   );
 
   return (
@@ -44,7 +44,7 @@ export function PackagesTable({ packages, brandId }: PackagesTableProps) {
       <div className="relative flex items-center gap-1 p-1 bg-kairo-sand-50 rounded-(--kairo-radius-md) w-fit">
         {filterTabs.map((tab) => {
           const isActive = activeFilter === tab.value;
-          const count = tab.value === "all" ? packages.length : (statusCounts[tab.value as PackageStatus] || 0);
+          const count = tab.value === "all" ? packages.length : (bandCounts[tab.value] || 0);
 
           return (
             <button
@@ -104,10 +104,9 @@ export function PackagesTable({ packages, brandId }: PackagesTableProps) {
               key={pkg.id}
               pkg={pkg}
               brandId={brandId}
-              opportunityTitle={demoClient.getOpportunityTitle(pkg.opportunityId)}
-              // TODO: Wire to real status transitions when backend exists
-              onEdit={() => demoClient.updatePackageStatus(brandId, pkg.id, "in_review")}
-              onOpen={() => demoClient.updatePackageStatus(brandId, pkg.id, pkg.status)}
+              opportunityTitle={mockApi.getOpportunityTitle(pkg.opportunity_id)}
+              onEdit={() => mockApi.updatePackageStatus(brandId, pkg.id, "in_review")}
+              onOpen={() => mockApi.updatePackageStatus(brandId, pkg.id, pkg.quality.band)}
             />
           ))}
         </div>

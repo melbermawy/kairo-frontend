@@ -1,5 +1,3 @@
-import { KCard } from "@/components/ui";
-
 interface TodayFocusStripProps {
   pillar: string;
   channel: string;
@@ -16,42 +14,41 @@ export function TodayFocusStrip({
   return (
     <div
       className="animate-[kairo-fade-up_var(--kairo-motion-slow)_var(--kairo-ease-soft)]"
+      data-testid="focus-strip"
     >
-      <KCard
-        elevated
-        className="bg-linear-to-r from-kairo-sand-50 to-kairo-aqua-50 border-kairo-aqua-100"
-      >
+      <div className="bg-kairo-bg-card border border-kairo-border-subtle rounded-(--kairo-radius-md) px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="min-w-0">
-            {/* Label */}
-            <p className="text-xs text-kairo-ink-500 mb-1">
+          {/* Left: Recommendation text */}
+          <div className="min-w-0 flex-1">
+            {/* Label - using fg-subtle for subdued helper text */}
+            <p className="text-xs text-kairo-fg-subtle mb-1">
               Today, Kairo recommends you focus on…
             </p>
 
-            {/* Focus triple */}
-            <p className="text-base font-semibold text-kairo-ink-900">
+            {/* Focus triple - using fg for readable primary content */}
+            <p className="text-base font-semibold text-kairo-fg">
               {pillar}
-              <span className="text-kairo-ink-400 font-normal"> · </span>
+              <span className="text-kairo-fg-subtle font-normal"> · </span>
               {channel}
-              <span className="text-kairo-ink-400 font-normal"> · </span>
+              <span className="text-kairo-fg-subtle font-normal"> · </span>
               {persona}
             </p>
           </div>
 
-          {/* Bold number with pop animation on mount */}
-          <div className="shrink-0 text-right sm:text-left">
+          {/* Right: Count badge */}
+          <div className="shrink-0 flex items-center gap-2 sm:flex-col sm:items-end sm:gap-0.5">
             <span
-              className="inline-block text-2xl font-bold text-kairo-aqua-600 animate-[kairo-breath_600ms_var(--kairo-ease-soft)]"
+              className="inline-block text-2xl font-bold text-kairo-accent-400 animate-[kairo-breath_600ms_var(--kairo-ease-soft)]"
               style={{ animationIterationCount: 1 }}
             >
               {highScoreCount}
             </span>
-            <p className="text-xs text-kairo-ink-500">
-              high-score opportunities waiting
+            <p className="text-xs text-kairo-fg-muted">
+              high-score opportunities
             </p>
           </div>
         </div>
-      </KCard>
+      </div>
     </div>
   );
 }

@@ -1,72 +1,176 @@
 @import "tailwindcss";
 
+/* ========================================
+   KAIRO DESIGN TOKENS — Dark Theme (Default)
+   "Claude-ish" warm neutrals + restrained blue-violet accent
+   ======================================== */
+
+html {
+  color-scheme: dark;
+}
+
 :root {
   /* ========================================
-     KAIRO DESIGN TOKENS — Clean & Modern
-     Crisp neutrals, calm aqua accents, bright clarity
+     CORE SEMANTIC SURFACES
      ======================================== */
 
-  /* --- A. Brand Aqua (Primary) --- */
-  /* Muted, sophisticated teal — calm and refined */
-  --kairo-color-aqua-50:  #F2F2F2;   /* Light neutral background */
-  --kairo-color-aqua-100: #E8F5F5;   /* Subtle tinted background */
-  --kairo-color-aqua-200: #D0EDED;   /* Border accent */
-  --kairo-color-aqua-300: #A8DCDC;   /* Light accent */
-  --kairo-color-aqua-500: #84CCCC;   /* Main brand primary - buttons */
-  --kairo-color-aqua-600: #3D8080;   /* Text / links - readable */
-  --kairo-color-aqua-700: #2D6666;   /* Darker hover / pressed text */
+  /* --- Background Surfaces --- */
+  --kairo-color-bg-app:      #18181B;   /* Zinc-900 base */
+  --kairo-color-bg-panel:    #1F1F23;   /* Slightly elevated panel */
+  --kairo-color-bg-card:     #27272A;   /* Card surface */
+  --kairo-color-bg-elevated: #3F3F46;   /* Elevated/hover elements */
+  --kairo-color-bg-hover:    #52525B;   /* Hover state */
+  --kairo-color-overlay:     rgba(0, 0, 0, 0.6);  /* Modal backdrop */
 
-  /* --- B. Neutral Background (formerly Sand) --- */
-  --kairo-color-sand-25:  #F2F2F2;   /* Deprecated - use aqua-50 */
-  --kairo-color-sand-50:  #F2F2F2;   /* Deprecated - use aqua-50 */
-  --kairo-color-sand-75:  #E8F5F5;   /* Deprecated - use aqua-100 */
-  --kairo-color-sand-100: #E8F5F5;   /* Deprecated - use aqua-100 */
-  --kairo-color-sand-200: #D0EDED;   /* Deprecated - use aqua-200 */
+  /* --- Borders --- */
+  --kairo-color-border-subtle: #3F3F46;   /* Zinc-700 */
+  --kairo-color-border-strong: #52525B;   /* Zinc-600 */
 
-  /* --- C. Ink (Text) --- */
-  --kairo-color-ink-900: #152023;    /* Headings */
-  --kairo-color-ink-700: #374247;    /* Primary body text */
-  --kairo-color-ink-600: #4A5459;    /* Nav hover text */
-  --kairo-color-ink-500: #6B757A;    /* Secondary text / labels */
-  --kairo-color-ink-400: #8A9499;    /* Nav icons default */
-  --kairo-color-ink-300: #AAB3B7;    /* Muted meta / dividers */
+  /* --- Foreground (Text) --- */
+  --kairo-color-fg:        #FAFAFA;    /* Primary text - Zinc-50 */
+  --kairo-color-fg-muted:  #A1A1AA;    /* Secondary text - Zinc-400 */
+  --kairo-color-fg-subtle: #71717A;    /* Tertiary text - Zinc-500 */
 
-  /* --- D. Surfaces and Borders --- */
-  --kairo-color-surface-plain:    #FFFFFF;
-  --kairo-color-surface-soft:     #FAFAFA;   /* Very light tinted card */
-  --kairo-color-border-subtle:    #E0E0E0;   /* Neutral gray border */
-  --kairo-color-border-strong:    #CCCCCC;   /* Stronger gray border */
+  /* ========================================
+     ACCENT (Blue-Violet / Indigo)
+     ======================================== */
+  --kairo-color-accent-50:  #EEF2FF;   /* Indigo-50 */
+  --kairo-color-accent-100: #E0E7FF;   /* Indigo-100 */
+  --kairo-color-accent-200: #C7D2FE;   /* Indigo-200 */
+  --kairo-color-accent-300: #A5B4FC;   /* Indigo-300 */
+  --kairo-color-accent-400: #818CF8;   /* Indigo-400 */
+  --kairo-color-accent-500: #6366F1;   /* Indigo-500 - Primary */
+  --kairo-color-accent-600: #4F46E5;   /* Indigo-600 */
+  --kairo-color-accent-700: #4338CA;   /* Indigo-700 */
 
-  /* --- E. Semantic Tags (Today page) --- */
-  --kairo-color-tag-trend-bg:       #F2F2F2;
-  --kairo-color-tag-trend-fg:       #3D8080;
-  --kairo-color-tag-evergreen-bg:   #E7F7EB;
-  --kairo-color-tag-evergreen-fg:   #1D8A47;
-  --kairo-color-tag-competitive-bg: #FFF3E0;
-  --kairo-color-tag-competitive-fg: #C76A1F;
-  --kairo-color-tag-campaign-bg:    #F3E8FF;
-  --kairo-color-tag-campaign-fg:    #6B21A8;
-  --kairo-color-tag-low-score-bg:   #FDEBEC;
-  --kairo-color-tag-low-score-fg:   #C0343C;
-
-  /* --- F. State / Action Colors --- */
-  --kairo-color-action-primary-bg:       var(--kairo-color-aqua-500);
+  /* ========================================
+     ACTION COLORS (mapped to accent)
+     ======================================== */
+  --kairo-color-action-primary-bg:       var(--kairo-color-accent-500);
   --kairo-color-action-primary-fg:       #FFFFFF;
-  --kairo-color-action-primary-hover-bg: #6BBCBC;
-  --kairo-color-action-muted-bg:         #FFFFFF;
+  --kairo-color-action-primary-hover-bg: var(--kairo-color-accent-600);
+  --kairo-color-action-muted-bg:         var(--kairo-color-bg-card);
   --kairo-color-action-muted-border:     var(--kairo-color-border-subtle);
-  --kairo-color-action-muted-fg:         var(--kairo-color-ink-700);
+  --kairo-color-action-muted-fg:         var(--kairo-color-fg);
 
-  /* --- Typography --- */
+  /* ========================================
+     LIFECYCLE TOKENS (tuned for dark)
+     ======================================== */
+  --kairo-color-lifecycle-seed-bg:      rgba(16, 185, 129, 0.15);  /* Emerald muted */
+  --kairo-color-lifecycle-seed-fg:      #34D399;                   /* Emerald-400 */
+  --kairo-color-lifecycle-rising-bg:    rgba(251, 146, 60, 0.15);  /* Orange muted */
+  --kairo-color-lifecycle-rising-fg:    #FB923C;                   /* Orange-400 */
+  --kairo-color-lifecycle-peaking-bg:   rgba(248, 113, 113, 0.15); /* Red muted */
+  --kairo-color-lifecycle-peaking-fg:   #F87171;                   /* Red-400 */
+  --kairo-color-lifecycle-declining-bg: rgba(161, 161, 170, 0.15); /* Zinc muted */
+  --kairo-color-lifecycle-declining-fg: #A1A1AA;                   /* Zinc-400 */
+  --kairo-color-lifecycle-evergreen-bg: rgba(99, 102, 241, 0.15);  /* Accent muted */
+  --kairo-color-lifecycle-evergreen-fg: var(--kairo-color-accent-400);
+  --kairo-color-lifecycle-active-bg:    rgba(96, 165, 250, 0.15);  /* Blue muted */
+  --kairo-color-lifecycle-active-fg:    #60A5FA;                   /* Blue-400 */
+
+  /* ========================================
+     CHART TOKENS
+     ======================================== */
+  --kairo-color-chart-positive: #34D399;  /* Emerald-400 */
+  --kairo-color-chart-negative: #F87171;  /* Red-400 */
+
+  /* ========================================
+     PLATFORM TOKENS
+     ======================================== */
+  --kairo-color-platform-tiktok:    #FFFFFF;
+  --kairo-color-platform-x:         #FFFFFF;
+  --kairo-color-platform-linkedin:  #0A66C2;
+  --kairo-color-platform-reddit:    #FF4500;
+  --kairo-color-platform-instagram: linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%);
+  --kairo-color-platform-web:       var(--kairo-color-fg-muted);
+
+  /* Platform badge backgrounds for dark mode */
+  --kairo-color-platform-tiktok-bg:    #000000;
+  --kairo-color-platform-x-bg:         #000000;
+  --kairo-color-platform-linkedin-bg:  #0A66C2;
+  --kairo-color-platform-reddit-bg:    #FF4500;
+  --kairo-color-platform-web-bg:       var(--kairo-color-bg-elevated);
+
+  /* ========================================
+     SEMANTIC TAGS
+     ======================================== */
+  --kairo-color-tag-trend-bg:       rgba(99, 102, 241, 0.15);
+  --kairo-color-tag-trend-fg:       var(--kairo-color-accent-400);
+  --kairo-color-tag-evergreen-bg:   rgba(16, 185, 129, 0.15);
+  --kairo-color-tag-evergreen-fg:   #34D399;
+  --kairo-color-tag-competitive-bg: rgba(251, 146, 60, 0.15);
+  --kairo-color-tag-competitive-fg: #FB923C;
+  --kairo-color-tag-campaign-bg:    rgba(168, 85, 247, 0.15);
+  --kairo-color-tag-campaign-fg:    #A855F7;
+  --kairo-color-tag-low-score-bg:   rgba(248, 113, 113, 0.15);
+  --kairo-color-tag-low-score-fg:   #F87171;
+
+  /* ========================================
+     SCORE COLORS
+     ======================================== */
+  --kairo-color-score-high-bg:   rgba(16, 185, 129, 0.15);
+  --kairo-color-score-high-fg:   #34D399;
+  --kairo-color-score-medium-bg: rgba(99, 102, 241, 0.15);
+  --kairo-color-score-medium-fg: var(--kairo-color-accent-400);
+  --kairo-color-score-low-bg:    var(--kairo-color-bg-elevated);
+  --kairo-color-score-low-fg:    var(--kairo-color-fg-muted);
+
+  /* ========================================
+     SUCCESS / ERROR / WARNING COLORS
+     ======================================== */
+  --kairo-color-success-bg:    rgba(16, 185, 129, 0.15);
+  --kairo-color-success-fg:    #34D399;    /* Emerald-400 */
+  --kairo-color-error-bg:      rgba(248, 113, 113, 0.15);
+  --kairo-color-error-fg:      #F87171;    /* Red-400 */
+  --kairo-color-warning-bg:    rgba(251, 191, 36, 0.15);
+  --kairo-color-warning-fg:    #FBBF24;    /* Amber-400 */
+
+  /* ========================================
+     LEGACY TOKENS (for backward compat)
+     Keep these mapped to new semantic tokens
+     ======================================== */
+
+  /* Aqua -> Accent (deprecated, use accent-*) */
+  --kairo-color-aqua-50:  var(--kairo-color-accent-50);
+  --kairo-color-aqua-100: var(--kairo-color-accent-100);
+  --kairo-color-aqua-200: var(--kairo-color-accent-200);
+  --kairo-color-aqua-300: var(--kairo-color-accent-300);
+  --kairo-color-aqua-500: var(--kairo-color-accent-500);
+  --kairo-color-aqua-600: var(--kairo-color-accent-600);
+  --kairo-color-aqua-700: var(--kairo-color-accent-700);
+
+  /* Sand -> Surface (deprecated) */
+  --kairo-color-sand-25:  var(--kairo-color-bg-card);
+  --kairo-color-sand-50:  var(--kairo-color-bg-card);
+  --kairo-color-sand-75:  var(--kairo-color-bg-elevated);
+  --kairo-color-sand-100: var(--kairo-color-bg-elevated);
+  --kairo-color-sand-200: var(--kairo-color-border-subtle);
+
+  /* Ink -> Foreground (deprecated) */
+  --kairo-color-ink-900: var(--kairo-color-fg);
+  --kairo-color-ink-700: var(--kairo-color-fg);
+  --kairo-color-ink-600: var(--kairo-color-fg-muted);
+  --kairo-color-ink-500: var(--kairo-color-fg-muted);
+  --kairo-color-ink-400: var(--kairo-color-fg-subtle);
+  --kairo-color-ink-300: var(--kairo-color-fg-subtle);
+
+  /* Surface (deprecated) */
+  --kairo-color-surface-plain: var(--kairo-color-bg-card);
+  --kairo-color-surface-soft:  var(--kairo-color-bg-panel);
+
+  /* ========================================
+     TYPOGRAPHY
+     ======================================== */
   --kairo-font-family-sans: var(--font-lato), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* Font sizes */
-  --kairo-font-size-xs:   11px;   /* Meta labels, pill text */
-  --kairo-font-size-sm:   13px;   /* Secondary text */
-  --kairo-font-size-md:   15px;   /* Main body text */
-  --kairo-font-size-lg:   18px;   /* Section headings, card titles */
-  --kairo-font-size-xl:   22px;   /* Page titles */
-  --kairo-font-size-2xl:  28px;   /* Hero / rarely used */
+  --kairo-font-size-xs:   11px;
+  --kairo-font-size-sm:   13px;
+  --kairo-font-size-md:   15px;
+  --kairo-font-size-lg:   18px;
+  --kairo-font-size-xl:   22px;
+  --kairo-font-size-2xl:  28px;
 
   /* Font weights */
   --kairo-font-weight-regular:  400;
@@ -78,24 +182,32 @@
   --kairo-line-height-normal:  1.4;
   --kairo-line-height-relaxed: 1.6;
 
-  /* --- Radii --- */
+  /* ========================================
+     RADII
+     ======================================== */
   --kairo-radius-xs:   4px;
   --kairo-radius-sm:   6px;
-  --kairo-radius-md:   10px;    /* Main card radius */
+  --kairo-radius-md:   10px;
   --kairo-radius-lg:   16px;
-  --kairo-radius-pill: 999px;   /* Tags, pill buttons */
+  --kairo-radius-pill: 999px;
 
-  /* --- Shadows (light, airy) --- */
+  /* ========================================
+     SHADOWS (dark-optimized)
+     ======================================== */
   --kairo-shadow-none:     none;
-  --kairo-shadow-soft:     0 6px 18px rgba(12, 48, 66, 0.04);
-  --kairo-shadow-elevated: 0 12px 30px rgba(12, 48, 66, 0.08);
+  --kairo-shadow-soft:     0 4px 12px rgba(0, 0, 0, 0.25);
+  --kairo-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --kairo-shadow-glow:     0 0 20px rgba(99, 102, 241, 0.15);
+  --kairo-shadow-glass:    inset 0 0.5px 0.5px rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.2);
+  --kairo-shadow-glass-hover: inset 0 0.5px 0.5px rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.3);
 
-  /* --- Transitions (legacy) --- */
+  /* ========================================
+     TRANSITIONS & MOTION
+     ======================================== */
   --kairo-transition-fast:   100ms ease-out;
   --kairo-transition-normal: 150ms ease-out;
   --kairo-transition-slow:   250ms ease-out;
 
-  /* --- Motion System (PR-11b) --- */
   --kairo-motion-fast:   120ms;
   --kairo-motion-medium: 200ms;
   --kairo-motion-slow:   280ms;
@@ -104,39 +216,64 @@
   --kairo-ease-soft:     cubic-bezier(0.33, 0.0, 0.2, 1);
 }
 
-/* Tailwind v4 theme integration */
+/* ========================================
+   TAILWIND V4 THEME INTEGRATION
+   ======================================== */
+
 @theme inline {
-  /* Aqua scale */
-  --color-kairo-aqua-50:  var(--kairo-color-aqua-50);
-  --color-kairo-aqua-100: var(--kairo-color-aqua-100);
-  --color-kairo-aqua-200: var(--kairo-color-aqua-200);
-  --color-kairo-aqua-300: var(--kairo-color-aqua-300);
-  --color-kairo-aqua-500: var(--kairo-color-aqua-500);
-  --color-kairo-aqua-600: var(--kairo-color-aqua-600);
-  --color-kairo-aqua-700: var(--kairo-color-aqua-700);
-
-  /* Sand scale (deprecated - mapped to neutral grays) */
-  --color-kairo-sand-25:  var(--kairo-color-aqua-50);
-  --color-kairo-sand-50:  var(--kairo-color-aqua-50);
-  --color-kairo-sand-75:  var(--kairo-color-aqua-100);
-  --color-kairo-sand-100: var(--kairo-color-aqua-100);
-  --color-kairo-sand-200: var(--kairo-color-aqua-200);
-
-  /* Ink scale */
-  --color-kairo-ink-900: var(--kairo-color-ink-900);
-  --color-kairo-ink-700: var(--kairo-color-ink-700);
-  --color-kairo-ink-600: var(--kairo-color-ink-600);
-  --color-kairo-ink-500: var(--kairo-color-ink-500);
-  --color-kairo-ink-400: var(--kairo-color-ink-400);
-  --color-kairo-ink-300: var(--kairo-color-ink-300);
-
-  /* Surfaces */
-  --color-kairo-surface-plain: var(--kairo-color-surface-plain);
-  --color-kairo-surface-soft:  var(--kairo-color-surface-soft);
+  /* Core semantic surfaces */
+  --color-kairo-bg-app:      var(--kairo-color-bg-app);
+  --color-kairo-bg-panel:    var(--kairo-color-bg-panel);
+  --color-kairo-bg-card:     var(--kairo-color-bg-card);
+  --color-kairo-bg-elevated: var(--kairo-color-bg-elevated);
+  --color-kairo-bg-hover:    var(--kairo-color-bg-hover);
 
   /* Borders */
   --color-kairo-border-subtle: var(--kairo-color-border-subtle);
   --color-kairo-border-strong: var(--kairo-color-border-strong);
+
+  /* Foreground */
+  --color-kairo-fg:        var(--kairo-color-fg);
+  --color-kairo-fg-muted:  var(--kairo-color-fg-muted);
+  --color-kairo-fg-subtle: var(--kairo-color-fg-subtle);
+
+  /* Accent scale */
+  --color-kairo-accent-50:  var(--kairo-color-accent-50);
+  --color-kairo-accent-100: var(--kairo-color-accent-100);
+  --color-kairo-accent-200: var(--kairo-color-accent-200);
+  --color-kairo-accent-300: var(--kairo-color-accent-300);
+  --color-kairo-accent-400: var(--kairo-color-accent-400);
+  --color-kairo-accent-500: var(--kairo-color-accent-500);
+  --color-kairo-accent-600: var(--kairo-color-accent-600);
+  --color-kairo-accent-700: var(--kairo-color-accent-700);
+
+  /* Legacy aqua (mapped to accent) */
+  --color-kairo-aqua-50:  var(--kairo-color-accent-50);
+  --color-kairo-aqua-100: var(--kairo-color-accent-100);
+  --color-kairo-aqua-200: var(--kairo-color-accent-200);
+  --color-kairo-aqua-300: var(--kairo-color-accent-300);
+  --color-kairo-aqua-500: var(--kairo-color-accent-500);
+  --color-kairo-aqua-600: var(--kairo-color-accent-600);
+  --color-kairo-aqua-700: var(--kairo-color-accent-700);
+
+  /* Legacy sand (mapped to surfaces) */
+  --color-kairo-sand-25:  var(--kairo-color-bg-card);
+  --color-kairo-sand-50:  var(--kairo-color-bg-card);
+  --color-kairo-sand-75:  var(--kairo-color-bg-elevated);
+  --color-kairo-sand-100: var(--kairo-color-bg-elevated);
+  --color-kairo-sand-200: var(--kairo-color-border-subtle);
+
+  /* Legacy ink (mapped to foreground) */
+  --color-kairo-ink-900: var(--kairo-color-fg);
+  --color-kairo-ink-700: var(--kairo-color-fg);
+  --color-kairo-ink-600: var(--kairo-color-fg-muted);
+  --color-kairo-ink-500: var(--kairo-color-fg-muted);
+  --color-kairo-ink-400: var(--kairo-color-fg-subtle);
+  --color-kairo-ink-300: var(--kairo-color-fg-subtle);
+
+  /* Legacy surfaces */
+  --color-kairo-surface-plain: var(--kairo-color-bg-card);
+  --color-kairo-surface-soft:  var(--kairo-color-bg-panel);
 
   /* Semantic tags */
   --color-kairo-tag-trend-bg:       var(--kairo-color-tag-trend-bg);
@@ -150,6 +287,52 @@
   --color-kairo-tag-low-score-bg:   var(--kairo-color-tag-low-score-bg);
   --color-kairo-tag-low-score-fg:   var(--kairo-color-tag-low-score-fg);
 
+  /* Lifecycle tokens */
+  --color-kairo-lifecycle-seed-bg:      var(--kairo-color-lifecycle-seed-bg);
+  --color-kairo-lifecycle-seed-fg:      var(--kairo-color-lifecycle-seed-fg);
+  --color-kairo-lifecycle-rising-bg:    var(--kairo-color-lifecycle-rising-bg);
+  --color-kairo-lifecycle-rising-fg:    var(--kairo-color-lifecycle-rising-fg);
+  --color-kairo-lifecycle-peaking-bg:   var(--kairo-color-lifecycle-peaking-bg);
+  --color-kairo-lifecycle-peaking-fg:   var(--kairo-color-lifecycle-peaking-fg);
+  --color-kairo-lifecycle-declining-bg: var(--kairo-color-lifecycle-declining-bg);
+  --color-kairo-lifecycle-declining-fg: var(--kairo-color-lifecycle-declining-fg);
+  --color-kairo-lifecycle-evergreen-bg: var(--kairo-color-lifecycle-evergreen-bg);
+  --color-kairo-lifecycle-evergreen-fg: var(--kairo-color-lifecycle-evergreen-fg);
+  --color-kairo-lifecycle-active-bg:    var(--kairo-color-lifecycle-active-bg);
+  --color-kairo-lifecycle-active-fg:    var(--kairo-color-lifecycle-active-fg);
+
+  /* Chart tokens */
+  --color-kairo-chart-positive: var(--kairo-color-chart-positive);
+  --color-kairo-chart-negative: var(--kairo-color-chart-negative);
+
+  /* Score tokens */
+  --color-kairo-score-high-bg:   var(--kairo-color-score-high-bg);
+  --color-kairo-score-high-fg:   var(--kairo-color-score-high-fg);
+  --color-kairo-score-medium-bg: var(--kairo-color-score-medium-bg);
+  --color-kairo-score-medium-fg: var(--kairo-color-score-medium-fg);
+  --color-kairo-score-low-bg:    var(--kairo-color-score-low-bg);
+  --color-kairo-score-low-fg:    var(--kairo-color-score-low-fg);
+
+  /* Success / Error / Warning tokens */
+  --color-kairo-success-bg: var(--kairo-color-success-bg);
+  --color-kairo-success-fg: var(--kairo-color-success-fg);
+  --color-kairo-error-bg:   var(--kairo-color-error-bg);
+  --color-kairo-error-fg:   var(--kairo-color-error-fg);
+  --color-kairo-warning-bg: var(--kairo-color-warning-bg);
+  --color-kairo-warning-fg: var(--kairo-color-warning-fg);
+
+  /* Platform tokens */
+  --color-kairo-platform-tiktok:      var(--kairo-color-platform-tiktok);
+  --color-kairo-platform-x:           var(--kairo-color-platform-x);
+  --color-kairo-platform-linkedin:    var(--kairo-color-platform-linkedin);
+  --color-kairo-platform-reddit:      var(--kairo-color-platform-reddit);
+  --color-kairo-platform-web:         var(--kairo-color-platform-web);
+  --color-kairo-platform-tiktok-bg:   var(--kairo-color-platform-tiktok-bg);
+  --color-kairo-platform-x-bg:        var(--kairo-color-platform-x-bg);
+  --color-kairo-platform-linkedin-bg: var(--kairo-color-platform-linkedin-bg);
+  --color-kairo-platform-reddit-bg:   var(--kairo-color-platform-reddit-bg);
+  --color-kairo-platform-web-bg:      var(--kairo-color-platform-web-bg);
+
   /* Action colors */
   --color-kairo-action-primary-bg:       var(--kairo-color-action-primary-bg);
   --color-kairo-action-primary-fg:       var(--kairo-color-action-primary-fg);
@@ -162,6 +345,7 @@
   --shadow-none:     var(--kairo-shadow-none);
   --shadow-soft:     var(--kairo-shadow-soft);
   --shadow-elevated: var(--kairo-shadow-elevated);
+  --shadow-glow:     var(--kairo-shadow-glow);
 
   /* Radii */
   --radius-xs:   var(--kairo-radius-xs);
@@ -179,8 +363,8 @@
    ======================================== */
 
 body {
-  background-color: var(--kairo-color-aqua-50);
-  color: var(--kairo-color-ink-700);
+  background-color: var(--kairo-color-bg-app);
+  color: var(--kairo-color-fg);
   font-family: var(--kairo-font-family-sans);
   font-size: var(--kairo-font-size-md);
   font-weight: var(--kairo-font-weight-regular);
@@ -191,7 +375,7 @@ body {
 
 /* Typography defaults */
 h1, h2, h3, h4, h5, h6 {
-  color: var(--kairo-color-ink-900);
+  color: var(--kairo-color-fg);
   font-weight: var(--kairo-font-weight-semibold);
   line-height: var(--kairo-line-height-tight);
   letter-spacing: -0.01em;
@@ -214,23 +398,22 @@ p {
   line-height: var(--kairo-line-height-relaxed);
 }
 
-/* Focus styles */
+/* Focus styles - using tokenized accent */
 :focus-visible {
-  outline: 2px solid #84CCCC;
+  outline: 2px solid var(--kairo-color-accent-500);
   outline-offset: 2px;
 }
 
-/* Selection */
+/* Selection - using tokenized colors */
 ::selection {
-  background-color: #D0EDED;
-  color: #2D6666;
+  background-color: var(--kairo-color-accent-500);
+  color: #FFFFFF;
 }
 
 /* ========================================
-   MOTION SYSTEM (PR-11b)
+   MOTION SYSTEM
    ======================================== */
 
-/* Utility helpers - short and semantic */
 .kairo-motion-base {
   transition-timing-function: var(--kairo-ease-standard);
 }
@@ -247,14 +430,10 @@ p {
   transition-timing-function: var(--kairo-ease-soft);
 }
 
-/* Shared keyframes */
+/* Keyframes */
 @keyframes kairo-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes kairo-fade-up {
@@ -286,7 +465,7 @@ p {
   }
   40% {
     transform: scale(1.02);
-    box-shadow: 0 0 0 4px rgba(132, 204, 204, 0.12);
+    box-shadow: var(--kairo-shadow-glow);
   }
 }
 
@@ -299,4 +478,13 @@ p {
     transform: scaleX(1);
     transform-origin: left;
   }
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Instagram gradient background */
+.kairo-instagram-gradient {
+  background: var(--kairo-color-platform-instagram);
 }

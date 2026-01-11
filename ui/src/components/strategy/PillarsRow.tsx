@@ -1,8 +1,14 @@
 import { KCard } from "@/components/ui";
-import type { BrandPillar } from "@/demo/brands";
+
+// UI-specific pillar shape (adapted from brand data in page components)
+interface Pillar {
+  id: string;
+  name: string;
+  summary: string;
+}
 
 interface PillarsRowProps {
-  pillars: BrandPillar[];
+  pillars: Pillar[];
 }
 
 export function PillarsRow({ pillars }: PillarsRowProps) {
