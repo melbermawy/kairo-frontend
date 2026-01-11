@@ -39,7 +39,8 @@ describe("Opportunity Drawer", () => {
       expect(content).toContain('data-testid="opportunity-drawer"');
       expect(content).toContain('data-testid="drawer-backdrop"');
       expect(content).toContain('data-testid="drawer-content"');
-      expect(content).toContain('data-testid="generate-package-btn"');
+      expect(content).toContain('data-testid="build-concept-btn"');
+      expect(content).toContain('data-testid="create-package-btn"');
     });
   });
 

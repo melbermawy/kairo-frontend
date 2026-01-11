@@ -52,37 +52,37 @@ export function PackageSummaryCard({ pkg }: PackageSummaryCardProps) {
   const uniqueChannels = [...new Set(channels)];
 
   return (
-    <KCard className="p-6">
+    <KCard className="p-4 sm:p-5">
       {/* Title + Quality band */}
-      <div className="flex items-start justify-between gap-2 mb-4">
-        <h3 className="text-sm font-semibold text-kairo-ink-900 leading-snug">
+      <div className="flex items-start justify-between gap-2 mb-3 sm:mb-4">
+        <h3 className="text-xs sm:text-sm font-semibold text-kairo-fg leading-snug">
           {pkg.title}
         </h3>
-        <KTag variant={bandVariants[pkg.quality.band] || "muted"} className="shrink-0 uppercase text-xs">
+        <KTag variant={bandVariants[pkg.quality.band] || "muted"} className="shrink-0 uppercase text-[10px] sm:text-xs">
           {bandLabels[pkg.quality.band] || pkg.quality.band}
         </KTag>
       </div>
 
       {/* Thesis / Core argument */}
-      <div className="mb-5">
-        <p className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide mb-1.5">
+      <div className="mb-4 sm:mb-5">
+        <p className="text-[10px] sm:text-xs font-medium text-kairo-fg-subtle uppercase tracking-wide mb-1 sm:mb-1.5">
           Core Argument
         </p>
-        <p className="text-sm text-kairo-ink-700 leading-relaxed">
+        <p className="text-xs sm:text-sm text-kairo-fg-muted leading-relaxed">
           {pkg.thesis}
         </p>
       </div>
 
       {/* Supporting points / Outline beats */}
       {points.length > 0 && (
-        <div className="mb-5">
-          <p className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide mb-2">
+        <div className="mb-4 sm:mb-5">
+          <p className="text-[10px] sm:text-xs font-medium text-kairo-fg-subtle uppercase tracking-wide mb-1.5 sm:mb-2">
             Key Points
           </p>
-          <ul className="space-y-1.5">
+          <ul className="space-y-1 sm:space-y-1.5">
             {points.map((point, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-xs text-kairo-ink-600">
-                <span className="text-kairo-ink-400 shrink-0">•</span>
+              <li key={idx} className="flex items-start gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-kairo-fg-muted">
+                <span className="text-kairo-fg-subtle shrink-0">•</span>
                 <span>{point}</span>
               </li>
             ))}
@@ -91,33 +91,34 @@ export function PackageSummaryCard({ pkg }: PackageSummaryCardProps) {
       )}
 
       {/* Meta row */}
-      <div className="pt-3 border-t border-kairo-border-subtle">
-        <div className="flex items-center gap-1.5 flex-wrap text-xs text-kairo-ink-500">
+      <div className="pt-2.5 sm:pt-3 border-t border-kairo-border-subtle">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap text-[10px] sm:text-xs text-kairo-fg-muted">
           <span className="font-medium capitalize">{pkg.format.replace(/_/g, " ")}</span>
           {pkg.persona && (
             <>
-              <span className="text-kairo-ink-300">·</span>
+              <span className="text-kairo-border-strong">·</span>
               <span>{pkg.persona}</span>
             </>
           )}
           {pkg.pillar && (
             <>
-              <span className="text-kairo-ink-300">·</span>
+              <span className="text-kairo-border-strong">·</span>
               <span>{pkg.pillar}</span>
             </>
           )}
           {uniqueChannels.length > 0 && (
             <>
-              <span className="text-kairo-ink-300">·</span>
-              <div className="flex items-center gap-1">
+              <span className="text-kairo-border-strong">·</span>
+              <div className="flex items-center gap-1 flex-wrap">
                 {uniqueChannels.map((channel) => (
                   <span
                     key={channel}
                     className={[
                       "inline-flex items-center",
-                      "px-1.5 py-0.5",
+                      "px-1 sm:px-1.5 py-0.5",
                       "rounded-(--kairo-radius-xs)",
-                      "bg-kairo-sand-75 text-kairo-ink-600",
+                      "text-[10px] sm:text-xs",
+                      "bg-kairo-bg-elevated text-kairo-fg-muted",
                       "border border-kairo-border-subtle",
                     ].join(" ")}
                   >

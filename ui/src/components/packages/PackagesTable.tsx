@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { PackageRow } from "./PackageRow";
 import { KButton } from "@/components/ui";
@@ -105,19 +106,17 @@ export function PackagesTable({ packages, brandId }: PackagesTableProps) {
               pkg={pkg}
               brandId={brandId}
               opportunityTitle={mockApi.getOpportunityTitle(pkg.opportunity_id)}
-              onEdit={() => mockApi.updatePackageStatus(brandId, pkg.id, "in_review")}
-              onOpen={() => mockApi.updatePackageStatus(brandId, pkg.id, pkg.quality.band)}
             />
           ))}
         </div>
       ) : (
-        <EmptyState filter={activeFilter} />
+        <EmptyState filter={activeFilter} brandId={brandId} />
       )}
     </div>
   );
 }
 
-function EmptyState({ filter }: { filter: FilterStatus }) {
+function EmptyState({ filter, brandId }: { filter: FilterStatus; brandId: string }) {
   const isFiltered = filter !== "all";
   const statusLabel = filter.replace("_", " ");
 
@@ -129,25 +128,27 @@ function EmptyState({ filter }: { filter: FilterStatus }) {
         "max-w-md mx-auto",
         "rounded-(--kairo-radius-md)",
         "border border-dashed border-kairo-border-subtle",
-        "bg-kairo-surface-soft",
+        "bg-kairo-bg-card",
       ].join(" ")}
     >
-      <EmptyPackageIcon className="w-10 h-10 text-kairo-ink-300 mb-3" />
+      <EmptyPackageIcon className="w-10 h-10 text-kairo-fg-subtle mb-3" />
 
-      <h3 className="text-sm font-medium text-kairo-ink-700 mb-1">
+      <h3 className="text-sm font-medium text-kairo-fg mb-1">
         {isFiltered ? `No ${statusLabel} packages` : "No packages yet"}
       </h3>
 
-      <p className="text-xs text-kairo-ink-500 text-center mb-4 leading-relaxed">
+      <p className="text-xs text-kairo-fg-muted text-center mb-4 leading-relaxed">
         {isFiltered
           ? `Packages will appear here once they reach the "${statusLabel}" stage.`
           : "Create a package from today's opportunities, or start from scratch."}
       </p>
 
       {!isFiltered && (
-        <KButton size="sm">
-          New Package
-        </KButton>
+        <Link href={`/brands/${brandId}/content/concepts/new`}>
+          <KButton size="sm">
+            New Package
+          </KButton>
+        </Link>
       )}
     </div>
   );

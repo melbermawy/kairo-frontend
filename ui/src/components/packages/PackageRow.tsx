@@ -8,8 +8,6 @@ interface PackageRowProps {
   pkg: ContentPackage;
   brandId: string;
   opportunityTitle?: string | null;
-  onEdit?: () => void;
-  onOpen?: () => void;
 }
 
 // Map quality band to tag variants
@@ -32,7 +30,7 @@ const channelLabels: Record<string, string> = {
   tiktok: "TikTok",
 };
 
-export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: PackageRowProps) {
+export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) {
   const variantCount = pkg.variants.length;
   const channels = [...new Set(pkg.deliverables.map((d) => d.channel))];
 
@@ -120,12 +118,16 @@ export function PackageRow({ pkg, brandId, opportunityTitle, onEdit, onOpen }: P
 
             {/* Actions - always visible */}
             <div className="flex items-center gap-1">
-              <KButton variant="ghost" size="sm" onClick={onEdit} className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
-                Edit
-              </KButton>
-              <KButton size="sm" onClick={onOpen} className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
-                Open
-              </KButton>
+              <Link href={`/brands/${brandId}/packages/${pkg.id}`}>
+                <KButton variant="ghost" size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
+                  Edit
+                </KButton>
+              </Link>
+              <Link href={`/brands/${brandId}/packages/${pkg.id}`}>
+                <KButton size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
+                  Open
+                </KButton>
+              </Link>
             </div>
           </div>
 

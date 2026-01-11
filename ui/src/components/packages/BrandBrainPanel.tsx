@@ -16,7 +16,7 @@ interface BrandBrainPanelProps {
 
 export function BrandBrainPanel({ voice, patterns }: BrandBrainPanelProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {/* Voice & Guardrails */}
       <VoiceCard voice={voice} />
 
@@ -28,34 +28,34 @@ export function BrandBrainPanel({ voice, patterns }: BrandBrainPanelProps) {
 
 function VoiceCard({ voice }: { voice: BrandVoice }) {
   return (
-    <KCard className="p-4">
-      <h3 className="text-sm font-semibold text-kairo-ink-900 mb-3">
+    <KCard className="p-3 sm:p-4">
+      <h3 className="text-xs sm:text-sm font-semibold text-kairo-fg mb-2 sm:mb-3">
         Brand Voice & Guardrails
       </h3>
 
       {/* Voice summary */}
-      <p className="text-sm text-kairo-ink-700 mb-3 leading-relaxed">
+      <p className="text-[11px] sm:text-sm text-kairo-fg-muted mb-2.5 sm:mb-3 leading-relaxed line-clamp-4 sm:line-clamp-none">
         {voice.summary}
       </p>
 
       {/* Tone tags */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
+      <div className="flex flex-wrap gap-1 sm:gap-1.5 mb-3 sm:mb-4">
         {voice.toneTags.map((tag) => (
-          <KTag key={tag} variant="outline" className="text-xs">
+          <KTag key={tag} variant="outline" className="text-[10px] sm:text-xs">
             {tag}
           </KTag>
         ))}
       </div>
 
       {/* Never do section */}
-      <div className="pt-3 border-t border-kairo-border-subtle">
-        <p className="text-xs font-medium text-kairo-ink-600 uppercase tracking-wide mb-2">
+      <div className="pt-2.5 sm:pt-3 border-t border-kairo-border-subtle">
+        <p className="text-[10px] sm:text-xs font-medium text-kairo-fg-muted uppercase tracking-wide mb-1.5 sm:mb-2">
           Never do
         </p>
-        <ul className="space-y-1.5">
+        <ul className="space-y-1 sm:space-y-1.5">
           {voice.nevers.map((never, idx) => (
-            <li key={idx} className="flex items-start gap-2 text-xs text-kairo-ink-500">
-              <span className="text-kairo-ink-400 shrink-0">✕</span>
+            <li key={idx} className="flex items-start gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-kairo-fg-subtle">
+              <span className="text-kairo-error-fg shrink-0">✕</span>
               <span>{never}</span>
             </li>
           ))}
@@ -70,12 +70,12 @@ function PatternsCard({ patterns }: { patterns: Pattern[] }) {
   const suggestedPatterns = patterns.slice(0, 3);
 
   return (
-    <KCard className="p-4">
-      <h3 className="text-sm font-semibold text-kairo-ink-900 mb-3">
+    <KCard className="p-3 sm:p-4">
+      <h3 className="text-xs sm:text-sm font-semibold text-kairo-fg mb-2 sm:mb-3">
         Suggested Patterns
       </h3>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5 sm:space-y-3">
         {suggestedPatterns.map((pattern) => (
           <PatternRow key={pattern.id} pattern={pattern} />
         ))}
@@ -86,23 +86,23 @@ function PatternsCard({ patterns }: { patterns: Pattern[] }) {
 
 function PatternRow({ pattern }: { pattern: Pattern }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1 sm:space-y-1.5">
       {/* Pattern name */}
-      <p className="text-sm font-medium text-kairo-ink-800">
+      <p className="text-xs sm:text-sm font-medium text-kairo-fg">
         {pattern.name}
       </p>
 
-      {/* Beat bar */}
-      <div className="flex items-center gap-1">
+      {/* Beat bar - scrollable on mobile if needed */}
+      <div className="flex items-center gap-1 flex-wrap">
         {pattern.beats.map((beat, idx) => (
           <span
             key={idx}
             className={[
               "inline-flex items-center",
-              "px-1.5 py-0.5",
+              "px-1 sm:px-1.5 py-0.5",
               "rounded-(--kairo-radius-xs)",
-              "text-xs",
-              "bg-kairo-aqua-50 text-kairo-aqua-600",
+              "text-[10px] sm:text-xs",
+              "bg-kairo-accent-500/10 text-kairo-accent-400",
             ].join(" ")}
           >
             {beat}
@@ -111,7 +111,7 @@ function PatternRow({ pattern }: { pattern: Pattern }) {
       </div>
 
       {/* Performance hint */}
-      <p className="text-xs text-kairo-ink-500">
+      <p className="text-[10px] sm:text-xs text-kairo-fg-subtle">
         {pattern.performanceHint}
       </p>
     </div>

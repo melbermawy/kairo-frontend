@@ -28,6 +28,8 @@ import {
   type Pattern,
   type EvidenceItem,
   type PatternCategory,
+  type ConceptDraft,
+  type PackageChannel,
 } from "@/contracts";
 
 import { NotFoundError } from "./errors";
@@ -403,36 +405,127 @@ export const mockApi = {
 
   /**
    * Create a new package from an opportunity.
-   * Mock mode: logs to console and returns a fake ID.
+   * Creates a package with default variants for suggested platforms.
    */
   async createPackageFromOpportunity(
     brandId: string,
     opportunityId: string
   ): Promise<string> {
-    const fakeId = `pkg_mock_${Date.now()}`;
+    // Verify brand exists
+    this.getBrand(brandId);
+
+    // Get the opportunity
+    const opp = opportunities.find((o) => o.id === opportunityId);
+    if (!opp) {
+      throw new NotFoundError("Opportunity", opportunityId);
+    }
+
+    const packageId = `pkg_${Date.now()}`;
+    const platforms = (opp.platforms || ["x"]) as PackageChannel[];
+    const variants = platforms.map((channel, i) => ({
+      id: `var_${packageId}_${i}`,
+      channel,
+      status: "draft" as const,
+      body: `Draft content for ${channel} based on: ${opp.title}`,
+      notes: "",
+      score: 0,
+    }));
+
+    const newPackage: ContentPackage = {
+      id: packageId,
+      opportunity_id: opportunityId,
+      title: opp.title,
+      thesis: opp.hook,
+      outline_beats: opp.why_now.slice(0, 3),
+      cta: "Learn more",
+      format: opp.format_target[0] || "shortform_video",
+      deliverables: variants.map((v) => ({
+        channel: v.channel,
+        variant_id: v.id,
+        label: `${v.channel} post`,
+      })),
+      variants,
+      evidence_refs: opp.evidence_ids,
+      quality: { score: 50, band: "needs_work", issues: ["Draft content needs review"] },
+    };
+
+    packages.push(newPackage);
     console.log("[mockApi] createPackageFromOpportunity", {
       brandId,
       opportunityId,
-      newPackageId: fakeId,
+      newPackageId: packageId,
     });
-    return fakeId;
+    return packageId;
   },
 
   /**
-   * Create a new package.
-   * Mock mode: logs to console and returns a fake ID.
+   * Create a new package from a concept draft.
+   * Creates a package with variants for each selected channel.
+   */
+  async createPackageFromConcept(
+    brandId: string,
+    concept: ConceptDraft
+  ): Promise<string> {
+    // Verify brand exists
+    this.getBrand(brandId);
+
+    const packageId = `pkg_${Date.now()}`;
+    const channels = concept.selected_channels as PackageChannel[];
+    const variants = channels.map((channel, i) => ({
+      id: `var_${packageId}_${i}`,
+      channel,
+      status: "draft" as const,
+      body: `${concept.one_liner}\n\n${concept.core_argument}`,
+      notes: concept.proof_points.join("\n"),
+      score: 0,
+    }));
+
+    // Get opportunity if provided
+    let oppTitle = concept.one_liner;
+    let evidenceRefs: string[] = [];
+    if (concept.opportunity_id) {
+      const opp = opportunities.find((o) => o.id === concept.opportunity_id);
+      if (opp) {
+        oppTitle = opp.title;
+        evidenceRefs = opp.evidence_ids;
+      }
+    }
+
+    const newPackage: ContentPackage = {
+      id: packageId,
+      opportunity_id: concept.opportunity_id || null,
+      title: oppTitle,
+      thesis: concept.core_argument,
+      outline_beats: concept.beats,
+      cta: "Learn more",
+      format: "shortform_video",
+      deliverables: variants.map((v) => ({
+        channel: v.channel,
+        variant_id: v.id,
+        label: `${v.channel} post`,
+      })),
+      variants,
+      evidence_refs: evidenceRefs,
+      quality: { score: 60, band: "partial", issues: ["Content from concept builder"] },
+    };
+
+    packages.push(newPackage);
+    console.log("[mockApi] createPackageFromConcept", {
+      brandId,
+      concept,
+      newPackageId: packageId,
+    });
+    return packageId;
+  },
+
+  /**
+   * Create a new package (legacy method, uses createPackageFromOpportunity).
    */
   async createPackage(
     brandId: string,
     opportunityId: string
   ): Promise<string> {
-    const fakeId = `pkg_mock_${Date.now()}`;
-    console.log("[mockApi] createPackage", {
-      brandId,
-      opportunityId,
-      newPackageId: fakeId,
-    });
-    return fakeId;
+    return this.createPackageFromOpportunity(brandId, opportunityId);
   },
 
   /**

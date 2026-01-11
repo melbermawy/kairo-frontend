@@ -15,48 +15,48 @@ const typeLabels: Record<string, string> = {
 
 export function SourceOpportunityCard({ opportunity, brandId }: SourceOpportunityCardProps) {
   return (
-    <KCard className="p-4">
-      <h3 className="text-xs font-medium text-kairo-ink-500 uppercase tracking-wide mb-3">
+    <KCard className="p-3 sm:p-4">
+      <h3 className="text-[10px] sm:text-xs font-medium text-kairo-fg-subtle uppercase tracking-wide mb-2 sm:mb-3">
         Source Opportunity
       </h3>
 
       {/* Type + Score row */}
       <div className="flex items-center justify-between mb-2">
-        <KTag variant={opportunity.type as "trend" | "evergreen" | "competitive"}>
+        <KTag variant={opportunity.type as "trend" | "evergreen" | "competitive"} className="text-[10px] sm:text-xs">
           {typeLabels[opportunity.type] || opportunity.type}
         </KTag>
         <span
           className={[
             "inline-flex items-center gap-1 px-1.5 py-0.5",
             "rounded-(--kairo-radius-xs)",
-            "text-xs font-medium",
+            "text-[10px] sm:text-xs font-medium",
             opportunity.score >= 60
-              ? "bg-kairo-sand-100 text-kairo-ink-600"
-              : "bg-kairo-tag-low-score-bg/60 text-kairo-tag-low-score-fg",
+              ? "bg-kairo-bg-elevated text-kairo-fg-muted"
+              : "bg-kairo-error-bg/60 text-kairo-error-fg",
           ].join(" ")}
         >
-          <ScoreIcon className="w-3 h-3" />
+          <ScoreIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
           {opportunity.score}
         </span>
       </div>
 
       {/* Title */}
-      <p className="text-sm font-semibold text-kairo-ink-900 mb-1">
+      <p className="text-xs sm:text-sm font-semibold text-kairo-fg mb-1">
         {opportunity.title}
       </p>
 
       {/* Hook / Why now */}
-      <p className="text-xs text-kairo-ink-600 line-clamp-2 mb-3">
+      <p className="text-[11px] sm:text-xs text-kairo-fg-muted line-clamp-2 mb-2.5 sm:mb-3">
         {opportunity.hook}
       </p>
 
       {/* Link to Today */}
       <Link
         href={`/brands/${brandId}/today`}
-        className="inline-flex items-center gap-1 text-xs text-kairo-aqua-600 hover:text-kairo-aqua-700 hover:underline transition-colors"
+        className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-kairo-accent-400 hover:text-kairo-accent-300 hover:underline transition-colors"
       >
         View on Today board
-        <ArrowIcon className="w-3 h-3" />
+        <ArrowIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
       </Link>
     </KCard>
   );

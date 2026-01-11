@@ -18,6 +18,8 @@ export type {
   FormatTaxonomy,
   PatternCategory,
   PatternStatus,
+  ConceptDraft,
+  PackageChannel,
 } from "@/contracts";
 
 // Infer OpportunityType from schema (not exported from contracts yet)
@@ -40,4 +42,5 @@ export {
   VariantStatusSchema,
   FormatTaxonomySchema,
   QualityBandSchema,
+  ConceptDraftSchema,
 } from "@/contracts";

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { KButton } from "@/components/ui";
 import { PackagesTable } from "@/components/packages";
 import { ContentPipelineStrip } from "@/components/content";
@@ -39,14 +40,16 @@ export default async function PackagesPage({ params }: PackagesPageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-kairo-ink-900">
+          <h1 className="text-xl font-semibold text-kairo-fg">
             Content Packages
           </h1>
-          <p className="text-sm text-kairo-ink-500 mt-0.5">
+          <p className="text-sm text-kairo-fg-muted mt-0.5">
             {packages.length} package{packages.length !== 1 ? "s" : ""} for {brand.name}
           </p>
         </div>
-        <KButton>New Package</KButton>
+        <Link href={`/brands/${brandId}/content/concepts/new`}>
+          <KButton>New Package</KButton>
+        </Link>
       </div>
 
       {/* Pipeline Strip */}
