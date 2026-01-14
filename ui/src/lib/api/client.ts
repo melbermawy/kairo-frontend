@@ -3,7 +3,9 @@
 // Mirrors mockApi method signatures for seamless switching
 
 import { z } from "zod";
-import { env } from "../env";
+import { env, logApiBaseOnce } from "../env";
+import { timing } from "../debug/timing";
+import { diagnostics } from "../debug/diagnostics";
 import {
   BrandCoreSchema,
   BrandOnboardingSchema,
@@ -11,16 +13,30 @@ import {
   BrandBrainSnapshotSchema,
   BrandBrainOverridesSchema,
   CompileStatusSchema,
+  CompileTriggerResponseSchema,
+  BackendSnapshotResponseSchema,
+  SnapshotHistoryResponseSchema,
   BrandBrainEvidenceSchema,
+  BrandBootstrapResponseSchema,
   type BrandCore,
   type BrandOnboarding,
   type SourceConnection,
   type BrandBrainSnapshot,
   type BrandBrainOverrides,
   type CompileStatus,
+  type CompileTriggerResponse,
+  type BackendSnapshotResponse,
+  type SnapshotHistoryResponse,
   type BrandBrainEvidence,
   type OverridesPatchRequest,
+  type BrandBootstrapResponse,
 } from "@/contracts";
+
+// ============================================
+// CONSTANTS
+// ============================================
+
+const DEFAULT_TIMEOUT_MS = 15000; // 15 seconds
 
 // ============================================
 // API ERROR TYPES
@@ -34,6 +50,17 @@ export class ApiError extends Error {
   ) {
     super(message);
     this.name = "ApiError";
+  }
+}
+
+export class ApiTimeoutError extends Error {
+  constructor(
+    message: string,
+    public endpoint: string,
+    public timeoutMs: number
+  ) {
+    super(message);
+    this.name = "ApiTimeoutError";
   }
 }
 
@@ -54,62 +81,158 @@ export class ValidationError extends Error {
 async function fetchApi<T>(
   endpoint: string,
   schema: z.ZodSchema<T>,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<T> {
+  // Log API base URL once on first request
+  logApiBaseOnce();
+
   const url = `${env.apiBaseUrl}${endpoint}`;
+  const method = options.method || "GET";
+  const startTime = Date.now();
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => "Unknown error");
-    throw new ApiError(
-      `API request failed: ${response.status} ${response.statusText} - ${errorBody}`,
-      response.status
-    );
+  timing.logApiStart(method, url);
+  diagnostics.trackRequestStart(url);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    const duration = Date.now() - startTime;
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "Unknown error");
+      timing.logApiEnd(method, url, duration, response.status);
+      diagnostics.trackRequestEnd(url, duration, errorBody.length);
+      throw new ApiError(
+        `API request failed: ${response.status} ${response.statusText} - ${errorBody}`,
+        response.status
+      );
+    }
+
+    const text = await response.text();
+    const payloadBytes = text.length;
+    timing.logApiEnd(method, url, duration, response.status);
+    diagnostics.trackRequestEnd(url, duration, payloadBytes);
+
+    const data = JSON.parse(text);
+    const result = schema.safeParse(data);
+
+    if (!result.success) {
+      // Log validation issues AND raw body (first 2KB) for debugging
+      console.error(`[VALIDATION] Failed for ${endpoint}:`);
+      console.error(`[VALIDATION] Status: ${response.status}`);
+      console.error(`[VALIDATION] Raw body (first 2KB): ${text.slice(0, 2048)}`);
+      console.error(`[VALIDATION] Issues:`, JSON.stringify(result.error.issues, null, 2));
+      throw new ValidationError(
+        `Response validation failed for ${endpoint}`,
+        result.error.issues
+      );
+    }
+
+    return result.data;
+  } catch (err) {
+    const duration = Date.now() - startTime;
+
+    if (err instanceof Error && err.name === "AbortError") {
+      timing.logApiEnd(method, url, duration, "timeout");
+      throw new ApiTimeoutError(
+        `Request to ${endpoint} timed out after ${timeoutMs}ms`,
+        endpoint,
+        timeoutMs
+      );
+    }
+
+    // Re-throw ApiError and ValidationError as-is
+    if (err instanceof ApiError || err instanceof ValidationError) {
+      throw err;
+    }
+
+    timing.logApiEnd(method, url, duration, "error");
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  const data = await response.json();
-  const result = schema.safeParse(data);
-
-  if (!result.success) {
-    throw new ValidationError(
-      `Response validation failed for ${endpoint}`,
-      result.error.issues
-    );
-  }
-
-  return result.data;
 }
 
 async function fetchApiNoValidation(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
 ): Promise<unknown> {
+  // Log API base URL once on first request
+  logApiBaseOnce();
+
   const url = `${env.apiBaseUrl}${endpoint}`;
+  const method = options.method || "GET";
+  const startTime = Date.now();
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
+  // Create AbortController for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => "Unknown error");
-    throw new ApiError(
-      `API request failed: ${response.status} ${response.statusText} - ${errorBody}`,
-      response.status
-    );
+  timing.logApiStart(method, url);
+  diagnostics.trackRequestStart(url);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    const duration = Date.now() - startTime;
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => "Unknown error");
+      timing.logApiEnd(method, url, duration, response.status);
+      diagnostics.trackRequestEnd(url, duration, errorBody.length);
+      throw new ApiError(
+        `API request failed: ${response.status} ${response.statusText} - ${errorBody}`,
+        response.status
+      );
+    }
+
+    const text = await response.text();
+    const payloadBytes = text.length;
+    timing.logApiEnd(method, url, duration, response.status);
+    diagnostics.trackRequestEnd(url, duration, payloadBytes);
+
+    return JSON.parse(text);
+  } catch (err) {
+    const duration = Date.now() - startTime;
+
+    if (err instanceof Error && err.name === "AbortError") {
+      timing.logApiEnd(method, url, duration, "timeout");
+      throw new ApiTimeoutError(
+        `Request to ${endpoint} timed out after ${timeoutMs}ms`,
+        endpoint,
+        timeoutMs
+      );
+    }
+
+    if (err instanceof ApiError) {
+      throw err;
+    }
+
+    timing.logApiEnd(method, url, duration, "error");
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
   }
-
-  return response.json();
 }
 
 // ============================================
@@ -213,20 +336,21 @@ export const realApi = {
   async triggerCompile(
     brandId: string,
     forceRefresh = false
-  ): Promise<{ compile_run_id: string; status: string }> {
-    const result = await fetchApiNoValidation(
+  ): Promise<CompileTriggerResponse> {
+    return fetchApi(
       `/api/brands/${brandId}/brandbrain/compile`,
+      CompileTriggerResponseSchema,
       {
         method: "POST",
         body: JSON.stringify({ force_refresh: forceRefresh }),
       }
     );
-    return result as { compile_run_id: string; status: string };
   },
 
   async getCompileStatus(brandId: string, compileRunId: string): Promise<CompileStatus> {
+    // FIXED: Backend path includes /status suffix
     return fetchApi(
-      `/api/brands/${brandId}/brandbrain/compile/${compileRunId}`,
+      `/api/brands/${brandId}/brandbrain/compile/${compileRunId}/status`,
       CompileStatusSchema
     );
   },
@@ -235,14 +359,16 @@ export const realApi = {
   // BRANDBRAIN SNAPSHOT
   // ============================================
 
-  async getLatestSnapshot(brandId: string): Promise<BrandBrainSnapshot> {
-    return fetchApi(`/api/brands/${brandId}/brandbrain/latest`, BrandBrainSnapshotSchema);
+  async getLatestSnapshot(brandId: string): Promise<BackendSnapshotResponse> {
+    // Backend returns wrapped format: { snapshot_id, brand_id, snapshot_json, created_at }
+    return fetchApi(`/api/brands/${brandId}/brandbrain/latest`, BackendSnapshotResponseSchema);
   },
 
-  async getSnapshotHistory(brandId: string): Promise<BrandBrainSnapshot[]> {
+  async getSnapshotHistory(brandId: string): Promise<SnapshotHistoryResponse> {
+    // Backend returns paginated: { snapshots: [...], page, page_size, total }
     return fetchApi(
       `/api/brands/${brandId}/brandbrain/history`,
-      z.array(BrandBrainSnapshotSchema)
+      SnapshotHistoryResponseSchema
     );
   },
 
@@ -284,5 +410,86 @@ export const realApi = {
       method: "POST",
       body: JSON.stringify({ ids: evidenceIds }),
     });
+  },
+
+  // ============================================
+  // BOOTSTRAP (single-request page data)
+  // ============================================
+
+  /**
+   * Fetch bootstrap data from backend.
+   * Single request: GET /api/brands/:id/bootstrap
+   */
+  async _fetchBootstrap(brandId: string): Promise<BrandBootstrapResponse> {
+    const startTime = Date.now();
+    const result = await fetchApi(
+      `/api/brands/${brandId}/bootstrap`,
+      BrandBootstrapResponseSchema
+    );
+    const duration = Date.now() - startTime;
+
+    // Log bootstrap performance
+    console.log(
+      `[BOOTSTRAP] GET /api/brands/${brandId}/bootstrap ms=${duration}`
+    );
+
+    return result;
+  },
+
+  /**
+   * Get all data needed for strategy page in one request.
+   * Uses backend bootstrap endpoint: GET /api/brands/:id/bootstrap
+   *
+   * Note: bootstrap.latest is lightweight (no snapshot_json).
+   * For full snapshot content, we need a separate fetch if hasSnapshot is true.
+   */
+  async getStrategyBootstrap(brandId: string): Promise<{
+    brand: BrandCore;
+    snapshot: BackendSnapshotResponse | null;
+    overrides: BrandBrainOverrides | null;
+    hasSnapshot: boolean;
+  }> {
+    const bootstrap = await this._fetchBootstrap(brandId);
+
+    // If snapshot exists, fetch the full snapshot_json separately
+    // (bootstrap.latest only has snapshot_id, created_at, has_data)
+    let snapshot: BackendSnapshotResponse | null = null;
+    if (bootstrap.latest?.has_data) {
+      snapshot = await this.getLatestSnapshot(brandId);
+    }
+
+    return {
+      brand: bootstrap.brand,
+      snapshot,
+      overrides: bootstrap.overrides,
+      hasSnapshot: bootstrap.latest !== null && bootstrap.latest.has_data,
+    };
+  },
+
+  /**
+   * Get all data needed for onboarding page in one request.
+   * Uses backend bootstrap endpoint: GET /api/brands/:id/bootstrap
+   */
+  async getOnboardingBootstrap(brandId: string): Promise<{
+    brand: BrandCore;
+    onboarding: BrandOnboarding;
+    sources: SourceConnection[];
+  }> {
+    const bootstrap = await this._fetchBootstrap(brandId);
+
+    return {
+      brand: bootstrap.brand,
+      onboarding: bootstrap.onboarding,
+      sources: bootstrap.sources,
+    };
+  },
+
+  /**
+   * Check if snapshot exists without fetching full content.
+   * Uses bootstrap endpoint for lightweight check.
+   */
+  async hasSnapshot(brandId: string): Promise<boolean> {
+    const bootstrap = await this._fetchBootstrap(brandId);
+    return bootstrap.latest !== null && bootstrap.latest.has_data;
   },
 };

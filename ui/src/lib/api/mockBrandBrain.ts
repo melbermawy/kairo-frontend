@@ -8,10 +8,12 @@ import {
   type BrandBrainSnapshot,
   type BrandBrainOverrides,
   type CompileStatus,
+  type CompileTriggerResponse,
+  type BackendSnapshotResponse,
+  type SnapshotHistoryResponse,
   type BrandBrainEvidence,
   type OverridesPatchRequest,
   type CompileStatusValue,
-  type CompileStage,
 } from "@/contracts";
 
 // ============================================
@@ -88,7 +90,14 @@ const mockOverrides: Map<string, BrandBrainOverrides> = new Map([
 ]);
 
 // Mock compile runs for polling simulation
-const mockCompileRuns: Map<string, { status: CompileStatusValue; stage: CompileStage; percent: number; startedAt: string }> = new Map();
+// Uses backend-compatible shape: { status, stage, sources_completed, sources_total }
+const mockCompileRuns: Map<string, {
+  status: CompileStatusValue;
+  stage: string;
+  sources_completed: number;
+  sources_total: number;
+  startedAt: string;
+}> = new Map();
 
 // ============================================
 // HELPER: Generate mock snapshot
@@ -302,12 +311,10 @@ export const mockBrandBrainApi = {
   // ============================================
 
   async listBrands(): Promise<BrandCore[]> {
-    await simulateDelay(100);
     return [...mockBrands];
   },
 
   async getBrand(brandId: string): Promise<BrandCore> {
-    await simulateDelay(50);
     const brand = mockBrands.find((b) => b.id === brandId);
     if (!brand) {
       throw new Error(`Brand not found: ${brandId}`);
@@ -316,7 +323,6 @@ export const mockBrandBrainApi = {
   },
 
   async createBrand(data: { name: string; website_url?: string }): Promise<BrandCore> {
-    await simulateDelay(200);
     const newBrand: BrandCore = {
       id: `brand_${Date.now()}`,
       name: data.name,
@@ -332,7 +338,6 @@ export const mockBrandBrainApi = {
   // ============================================
 
   async getOnboarding(brandId: string): Promise<BrandOnboarding> {
-    await simulateDelay(100);
     const onboarding = mockOnboarding.get(brandId);
     if (!onboarding) {
       // Return empty onboarding
@@ -351,7 +356,6 @@ export const mockBrandBrainApi = {
     tier: 0 | 1 | 2,
     answers: Record<string, unknown>
   ): Promise<BrandOnboarding> {
-    await simulateDelay(150);
     console.log("[mockBrandBrainApi] saveOnboarding", { brandId, tier, answers });
 
     const existing = mockOnboarding.get(brandId);
@@ -373,7 +377,6 @@ export const mockBrandBrainApi = {
   // ============================================
 
   async listSources(brandId: string): Promise<SourceConnection[]> {
-    await simulateDelay(100);
     return [...(mockSources.get(brandId) || [])];
   },
 
@@ -387,7 +390,6 @@ export const mockBrandBrainApi = {
       settings_json?: Record<string, unknown>;
     }
   ): Promise<SourceConnection> {
-    await simulateDelay(200);
     console.log("[mockBrandBrainApi] createSource", { brandId, data });
 
     const newSource: SourceConnection = {
@@ -416,7 +418,6 @@ export const mockBrandBrainApi = {
       settings_json: Record<string, unknown>;
     }>
   ): Promise<SourceConnection> {
-    await simulateDelay(150);
     console.log("[mockBrandBrainApi] updateSource", { sourceId, updates });
 
     for (const [, sources] of mockSources) {
@@ -430,7 +431,6 @@ export const mockBrandBrainApi = {
   },
 
   async deleteSource(sourceId: string): Promise<void> {
-    await simulateDelay(150);
     console.log("[mockBrandBrainApi] deleteSource", { sourceId });
 
     for (const [brandId, sources] of mockSources) {
@@ -451,57 +451,109 @@ export const mockBrandBrainApi = {
   async triggerCompile(
     brandId: string,
     forceRefresh = false
-  ): Promise<{ compile_run_id: string; status: string }> {
-    await simulateDelay(200);
+  ): Promise<CompileTriggerResponse> {
     console.log("[mockBrandBrainApi] triggerCompile", { brandId, forceRefresh });
 
     const runId = `compile_${Date.now()}`;
     mockCompileRuns.set(runId, {
-      status: "QUEUED",
-      stage: "QUEUED",
-      percent: 0,
+      status: "PENDING",
+      stage: "queued",
+      sources_completed: 0,
+      sources_total: 5,
       startedAt: new Date().toISOString(),
     });
 
     // Simulate async progress
     simulateCompileProgress(runId, brandId);
 
-    return { compile_run_id: runId, status: "QUEUED" };
+    // Return backend-compatible format
+    return {
+      compile_run_id: runId,
+      status: "PENDING",
+      poll_url: `/api/brands/${brandId}/brandbrain/compile/${runId}/status`,
+    };
   },
 
   async getCompileStatus(brandId: string, compileRunId: string): Promise<CompileStatus> {
-    await simulateDelay(50);
     const run = mockCompileRuns.get(compileRunId);
     if (!run) {
       throw new Error(`Compile run not found: ${compileRunId}`);
     }
 
-    return {
+    // Return backend-compatible format
+    const baseResponse: CompileStatus = {
       compile_run_id: compileRunId,
       status: run.status,
-      progress: {
-        stage: run.stage,
-        percent: run.percent,
-      },
-      started_at: run.startedAt,
-      updated_at: new Date().toISOString(),
-      error: run.status === "FAILED" ? "Mock compile failure" : null,
     };
+
+    // Add progress for PENDING/RUNNING states
+    if (run.status === "PENDING" || run.status === "RUNNING") {
+      baseResponse.progress = {
+        stage: run.stage,
+        sources_completed: run.sources_completed,
+        sources_total: run.sources_total,
+      };
+    }
+
+    // Add snapshot for SUCCEEDED state
+    if (run.status === "SUCCEEDED") {
+      const snapshot = generateMockSnapshot(brandId);
+      baseResponse.snapshot = {
+        snapshot_id: snapshot.id,
+        created_at: new Date().toISOString(),
+        snapshot_json: snapshot as unknown as Record<string, unknown>,
+      };
+      baseResponse.evidence_status = {
+        total: 47,
+        completed: 47,
+        failed: 0,
+      };
+    }
+
+    // Add error for FAILED state
+    if (run.status === "FAILED") {
+      baseResponse.error = "Mock compile failure";
+      baseResponse.evidence_status = {
+        total: 47,
+        completed: 30,
+        failed: 17,
+      };
+    }
+
+    return baseResponse;
   },
 
   // ============================================
   // BRANDBRAIN SNAPSHOT
   // ============================================
 
-  async getLatestSnapshot(brandId: string): Promise<BrandBrainSnapshot> {
-    await simulateDelay(150);
-    return generateMockSnapshot(brandId);
+  async getLatestSnapshot(brandId: string): Promise<BackendSnapshotResponse> {
+    // Return backend-compatible wrapped format
+    const snapshot = generateMockSnapshot(brandId);
+    return {
+      snapshot_id: snapshot.id,
+      brand_id: brandId,
+      snapshot_json: snapshot as unknown as Record<string, unknown>,
+      created_at: new Date().toISOString(),
+      compile_run_id: `compile_${Date.now() - 10000}`,
+    };
   },
 
-  async getSnapshotHistory(brandId: string): Promise<BrandBrainSnapshot[]> {
-    await simulateDelay(200);
-    // Return single snapshot for mock
-    return [generateMockSnapshot(brandId)];
+  async getSnapshotHistory(brandId: string): Promise<SnapshotHistoryResponse> {
+    // Return backend-compatible paginated format
+    const snapshot = generateMockSnapshot(brandId);
+    return {
+      snapshots: [
+        {
+          snapshot_id: snapshot.id,
+          created_at: new Date().toISOString(),
+          diff_summary: {},
+        },
+      ],
+      page: 1,
+      page_size: 10,
+      total: 1,
+    };
   },
 
   // ============================================
@@ -509,7 +561,6 @@ export const mockBrandBrainApi = {
   // ============================================
 
   async getOverrides(brandId: string): Promise<BrandBrainOverrides> {
-    await simulateDelay(100);
     const overrides = mockOverrides.get(brandId);
     if (!overrides) {
       return {
@@ -526,42 +577,29 @@ export const mockBrandBrainApi = {
     brandId: string,
     patch: OverridesPatchRequest
   ): Promise<BrandBrainOverrides> {
-    await simulateDelay(150);
     console.log("[mockBrandBrainApi] patchOverrides", { brandId, patch });
 
     const existing = mockOverrides.get(brandId) || {
       brand_id: brandId,
       overrides_json: {},
       pinned_paths: [],
-      updated_at: new Date().toISOString(),
+      updated_at: null,
     };
 
-    // Apply set_overrides
-    if (patch.set_overrides) {
-      Object.assign(existing.overrides_json, patch.set_overrides);
-    }
-
-    // Apply remove_overrides
-    if (patch.remove_overrides) {
-      for (const path of patch.remove_overrides) {
-        delete existing.overrides_json[path];
-      }
-    }
-
-    // Apply pin_paths
-    if (patch.pin_paths) {
-      for (const path of patch.pin_paths) {
-        if (!existing.pinned_paths.includes(path)) {
-          existing.pinned_paths.push(path);
+    // Backend semantics: overrides_json merges; null value deletes a key
+    if (patch.overrides_json) {
+      for (const [path, value] of Object.entries(patch.overrides_json)) {
+        if (value === null) {
+          delete existing.overrides_json[path];
+        } else {
+          existing.overrides_json[path] = value;
         }
       }
     }
 
-    // Apply unpin_paths
-    if (patch.unpin_paths) {
-      existing.pinned_paths = existing.pinned_paths.filter(
-        (p) => !patch.unpin_paths!.includes(p)
-      );
+    // Backend semantics: pinned_paths replaces entire list
+    if (patch.pinned_paths !== undefined) {
+      existing.pinned_paths = [...patch.pinned_paths];
     }
 
     existing.updated_at = new Date().toISOString();
@@ -575,7 +613,6 @@ export const mockBrandBrainApi = {
   // ============================================
 
   async getEvidence(evidenceId: string): Promise<BrandBrainEvidence> {
-    await simulateDelay(100);
     // Return mock evidence
     return {
       id: evidenceId,
@@ -593,7 +630,6 @@ export const mockBrandBrainApi = {
   },
 
   async getEvidenceBatch(evidenceIds: string[]): Promise<BrandBrainEvidence[]> {
-    await simulateDelay(150);
     return evidenceIds.map((id) => ({
       id,
       platform: "instagram",
@@ -608,30 +644,76 @@ export const mockBrandBrainApi = {
       media_json: {},
     }));
   },
+
+  // ============================================
+  // BOOTSTRAP (combined fetches)
+  // ============================================
+
+  async getStrategyBootstrap(brandId: string): Promise<{
+    brand: BrandCore;
+    snapshot: BackendSnapshotResponse | null;
+    overrides: BrandBrainOverrides | null;
+    hasSnapshot: boolean;
+  }> {
+    const [brand, snapshot, overrides] = await Promise.all([
+      this.getBrand(brandId),
+      this.getLatestSnapshot(brandId).catch(() => null),
+      this.getOverrides(brandId).catch(() => null),
+    ]);
+
+    return {
+      brand,
+      snapshot,
+      overrides,
+      hasSnapshot: snapshot !== null,
+    };
+  },
+
+  async getOnboardingBootstrap(brandId: string): Promise<{
+    brand: BrandCore;
+    onboarding: BrandOnboarding;
+    sources: SourceConnection[];
+  }> {
+    const [brand, onboarding, sources] = await Promise.all([
+      this.getBrand(brandId),
+      this.getOnboarding(brandId),
+      this.listSources(brandId),
+    ]);
+
+    return { brand, onboarding, sources };
+  },
+
+  async hasSnapshot(brandId: string): Promise<boolean> {
+    // In mock mode, any brand that exists can have a snapshot generated
+    return mockBrands.some((b) => b.id === brandId);
+  },
 };
 
 // ============================================
 // HELPERS
 // ============================================
 
-function simulateDelay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// NOTE: No simulateDelay() in mock API methods.
+// Artificial delays block server-side rendering and add 300-500ms+ to page loads.
+// Mock mode should return in-memory data synchronously.
+// If you need to test loading states, do so in client-side tests.
 
-// Simulate compile progress over time
-function simulateCompileProgress(runId: string, brandId: string): void {
-  const stages: Array<{ stage: CompileStage; duration: number }> = [
-    { stage: "ENSURE_EVIDENCE", duration: 500 },
-    { stage: "NORMALIZE", duration: 400 },
-    { stage: "BUNDLE", duration: 300 },
-    { stage: "LLM", duration: 1500 },
-    { stage: "QA", duration: 400 },
-    { stage: "MERGE", duration: 300 },
-    { stage: "DONE", duration: 100 },
+// Simulate compile progress over time (runs in background, doesn't block)
+// Uses backend-compatible stage names (lowercase) and sources_completed/sources_total
+function simulateCompileProgress(runId: string, _brandId: string): void {
+  const stages = [
+    "evidence_gathering",
+    "normalizing",
+    "bundling",
+    "llm_processing",
+    "qa_check",
+    "merging",
+    "done",
   ];
 
   let currentStageIndex = 0;
-  let currentPercent = 0;
+  let sourcesCompleted = 0;
+  const sourcesTotal = 5;
 
   const run = mockCompileRuns.get(runId);
   if (!run) return;
@@ -645,20 +727,18 @@ function simulateCompileProgress(runId: string, brandId: string): void {
       return;
     }
 
-    currentPercent += 5;
-    const stageProgress = (currentStageIndex / stages.length) * 100;
-    const withinStageProgress = (currentPercent / 100) * (100 / stages.length);
-    run.percent = Math.min(Math.round(stageProgress + withinStageProgress), 100);
+    sourcesCompleted = Math.min(sourcesCompleted + 1, sourcesTotal);
+    run.sources_completed = sourcesCompleted;
 
-    if (currentPercent >= 100) {
-      currentPercent = 0;
+    if (sourcesCompleted >= sourcesTotal) {
+      sourcesCompleted = 0;
       currentStageIndex++;
       if (currentStageIndex < stages.length) {
-        run.stage = stages[currentStageIndex].stage;
+        run.stage = stages[currentStageIndex];
       } else {
         run.status = "SUCCEEDED";
-        run.stage = "DONE";
-        run.percent = 100;
+        run.stage = "done";
+        run.sources_completed = sourcesTotal;
         clearInterval(progressInterval);
       }
     }
