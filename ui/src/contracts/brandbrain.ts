@@ -155,9 +155,16 @@ export const FieldSourceEvidenceSchema = z.object({
   id: z.string(),
 });
 
+// Backend may also return "llm" as source type
+export const FieldSourceLlmSchema = z.object({
+  type: z.literal("llm"),
+  id: z.string(),
+});
+
 export const FieldSourceSchema = z.union([
   FieldSourceAnswerSchema,
   FieldSourceEvidenceSchema,
+  FieldSourceLlmSchema,
 ]);
 
 export type FieldSource = z.infer<typeof FieldSourceSchema>;
@@ -589,6 +596,94 @@ const DEFAULT_CONSTRAINTS: BrandBrainSnapshot["constraints"] = {
 };
 
 /**
+ * Normalize a value to a StringFieldNode.
+ * Handles various backend formats:
+ * - Already a FieldNode: { value, confidence, sources, locked, override_value }
+ * - Plain string
+ * - Undefined/null
+ */
+function normalizeStringFieldNode(raw: unknown, defaultValue: string = ""): StringFieldNode {
+  if (!raw) {
+    return createDefaultStringFieldNode(defaultValue);
+  }
+
+  // Already a FieldNode-like object
+  if (typeof raw === "object" && "value" in raw && typeof (raw as Record<string, unknown>).value === "string") {
+    const obj = raw as Record<string, unknown>;
+    return {
+      value: obj.value as string,
+      confidence: (obj.confidence as number) ?? 0.5,
+      sources: Array.isArray(obj.sources) ? obj.sources as FieldSource[] : [],
+      locked: (obj.locked as boolean) ?? false,
+      override_value: (obj.override_value as string | null) ?? null,
+    };
+  }
+
+  // Plain string
+  if (typeof raw === "string") {
+    return createDefaultStringFieldNode(raw);
+  }
+
+  return createDefaultStringFieldNode(defaultValue);
+}
+
+/**
+ * Normalize a value to a StringArrayFieldNode.
+ * Handles various backend formats:
+ * - Already a FieldNode: { value: string[], confidence, sources, ... }
+ * - Plain string array
+ * - Array of { value, confidence } objects (backend differentiators format)
+ * - Undefined/null
+ */
+function normalizeStringArrayFieldNode(raw: unknown, defaultValue: string[] = []): StringArrayFieldNode {
+  if (!raw) {
+    return createDefaultStringArrayFieldNode(defaultValue);
+  }
+
+  // Already a FieldNode-like object with value array
+  if (typeof raw === "object" && !Array.isArray(raw) && "value" in raw) {
+    const obj = raw as Record<string, unknown>;
+    const value = Array.isArray(obj.value) ? obj.value as string[] : [];
+    return {
+      value,
+      confidence: (obj.confidence as number) ?? 0.5,
+      sources: Array.isArray(obj.sources) ? obj.sources as FieldSource[] : [],
+      locked: (obj.locked as boolean) ?? false,
+      override_value: (obj.override_value as string[] | null) ?? null,
+    };
+  }
+
+  // Plain string array
+  if (Array.isArray(raw) && raw.every((item) => typeof item === "string")) {
+    return createDefaultStringArrayFieldNode(raw as string[]);
+  }
+
+  // Array of { value, confidence } objects (backend differentiators format)
+  if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "object" && "value" in (raw[0] as object)) {
+    const values = raw.map((item) => {
+      const obj = item as Record<string, unknown>;
+      return typeof obj.value === "string" ? obj.value : String(obj.value ?? "");
+    });
+    // Use average confidence if available
+    const confidences = raw
+      .map((item) => (item as Record<string, unknown>).confidence as number | undefined)
+      .filter((c): c is number => typeof c === "number");
+    const avgConfidence = confidences.length > 0
+      ? confidences.reduce((a, b) => a + b, 0) / confidences.length
+      : 0.5;
+    return {
+      value: values,
+      confidence: avgConfidence,
+      sources: [],
+      locked: false,
+      override_value: null,
+    };
+  }
+
+  return createDefaultStringArrayFieldNode(defaultValue);
+}
+
+/**
  * Transform backend snapshot response to frontend BrandBrainSnapshot format.
  * Backend returns: { snapshot_id, brand_id, snapshot_json: {...}, created_at }
  * Frontend expects: { id, brand_id, version, positioning, voice, ... meta: { compiled_at } }
@@ -596,8 +691,12 @@ const DEFAULT_CONSTRAINTS: BrandBrainSnapshot["constraints"] = {
  * The snapshot_json from backend contains the actual playbook content.
  * We extract it and add meta information from the wrapper.
  *
- * NOTE: Backend may return stub/partial snapshots with missing fields.
- * We provide safe defaults for all missing fields to prevent crashes.
+ * NOTE: Backend schema differs from frontend schema:
+ * - Backend puts taboos, risk_boundaries under voice
+ * - Backend puts proof_types, content_pillars under content
+ * - Backend returns differentiators as array of { value, confidence }
+ * - Backend returns tone_tags as plain string array
+ * We normalize all these formats to the frontend schema.
  */
 export function transformBackendSnapshot(
   response: BackendSnapshotResponse
@@ -608,6 +707,7 @@ export function transformBackendSnapshot(
   const rawPositioning = content.positioning as Record<string, unknown> | undefined;
   const rawVoice = content.voice as Record<string, unknown> | undefined;
   const rawConstraints = content.constraints as Record<string, unknown> | undefined;
+  const rawContent = content.content as Record<string, unknown> | undefined;
 
   // Build meta from wrapper + content
   const contentMeta = content.meta as Record<string, unknown> | undefined;
@@ -621,37 +721,61 @@ export function transformBackendSnapshot(
     missing_inputs: (contentMeta?.missing_inputs as string[]) ?? [],
   };
 
-  // Build positioning with safe defaults for missing fields
+  // Build positioning with normalization for different backend formats
+  // Backend may have proof_types under content instead of positioning
   const positioning: BrandBrainSnapshot["positioning"] = {
-    what_we_do: (rawPositioning?.what_we_do as StringFieldNode) ?? DEFAULT_POSITIONING.what_we_do,
-    who_for: (rawPositioning?.who_for as StringFieldNode) ?? DEFAULT_POSITIONING.who_for,
-    differentiators: (rawPositioning?.differentiators as StringArrayFieldNode) ?? DEFAULT_POSITIONING.differentiators,
-    proof_types: (rawPositioning?.proof_types as StringArrayFieldNode) ?? DEFAULT_POSITIONING.proof_types,
+    what_we_do: normalizeStringFieldNode(rawPositioning?.what_we_do),
+    who_for: normalizeStringFieldNode(rawPositioning?.who_for),
+    differentiators: normalizeStringArrayFieldNode(rawPositioning?.differentiators),
+    proof_types: normalizeStringArrayFieldNode(
+      rawPositioning?.proof_types ?? rawContent?.proof_types
+    ),
   };
 
-  // Build voice with safe defaults for missing fields
+  // Build voice with normalization
+  // Backend may have tone_tags as plain string array
   const voice: BrandBrainSnapshot["voice"] = {
-    tone_tags: (rawVoice?.tone_tags as StringArrayFieldNode) ?? DEFAULT_VOICE.tone_tags,
-    do: (rawVoice?.do as StringArrayFieldNode) ?? DEFAULT_VOICE.do,
-    dont: (rawVoice?.dont as StringArrayFieldNode) ?? DEFAULT_VOICE.dont,
-    cta_policy: (rawVoice?.cta_policy as StringFieldNode) ?? DEFAULT_VOICE.cta_policy,
-    emoji_policy: (rawVoice?.emoji_policy as StringFieldNode) ?? DEFAULT_VOICE.emoji_policy,
+    tone_tags: normalizeStringArrayFieldNode(rawVoice?.tone_tags),
+    do: normalizeStringArrayFieldNode(rawVoice?.do),
+    dont: normalizeStringArrayFieldNode(rawVoice?.dont),
+    cta_policy: normalizeStringFieldNode(rawVoice?.cta_policy),
+    emoji_policy: normalizeStringFieldNode(rawVoice?.emoji_policy),
   };
 
-  // Build constraints with safe defaults for missing fields
+  // Build constraints with normalization
+  // Backend may have taboos and risk_boundaries under voice instead of constraints
   const constraints: BrandBrainSnapshot["constraints"] = {
-    taboos: (rawConstraints?.taboos as StringArrayFieldNode) ?? DEFAULT_CONSTRAINTS.taboos,
-    risk_boundaries: (rawConstraints?.risk_boundaries as StringArrayFieldNode) ?? DEFAULT_CONSTRAINTS.risk_boundaries,
+    taboos: normalizeStringArrayFieldNode(
+      rawConstraints?.taboos ?? rawVoice?.taboos
+    ),
+    risk_boundaries: normalizeStringArrayFieldNode(
+      rawConstraints?.risk_boundaries ?? rawVoice?.risk_boundaries
+    ),
   };
 
-  // Build the snapshot with safe defaults for all fields
+  // Build pillars from content.content_pillars if available
+  // Backend format: { name, description } objects
+  let pillars: BrandBrainSnapshot["pillars"] = [];
+  const rawPillars = content.pillars ?? rawContent?.content_pillars;
+  if (Array.isArray(rawPillars)) {
+    pillars = rawPillars.map((pillar, index) => {
+      const p = pillar as Record<string, unknown>;
+      return {
+        name: normalizeStringFieldNode(p.name),
+        description: normalizeStringFieldNode(p.description),
+        themes: normalizeStringArrayFieldNode(p.themes),
+      };
+    });
+  }
+
+  // Build the snapshot with all normalized fields
   const snapshot: BrandBrainSnapshot = {
     id: response.snapshot_id,
     brand_id: response.brand_id,
     version: (content.version as number) ?? 1,
     positioning,
     voice,
-    pillars: (content.pillars as BrandBrainSnapshot["pillars"]) ?? [],
+    pillars,
     constraints,
     platform_profiles: (content.platform_profiles as BrandBrainSnapshot["platform_profiles"]) ?? [],
     examples: (content.examples as BrandBrainSnapshot["examples"]) ?? {
@@ -661,7 +785,7 @@ export function transformBackendSnapshot(
     meta,
   };
 
-  // Validate the result (should pass now with defaults)
+  // Validate the result (should pass now with normalization)
   const result = BrandBrainSnapshotSchema.safeParse(snapshot);
   if (!result.success) {
     console.warn("Snapshot transformation validation failed:", result.error.issues);
