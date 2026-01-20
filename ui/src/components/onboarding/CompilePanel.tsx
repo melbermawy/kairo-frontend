@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { KButton, KCard } from "@/components/ui";
 import { api } from "@/lib/api";
 import { env } from "@/lib/env";
-import type { CompileStatus, CompileStage } from "@/contracts";
+import type { CompileStatus } from "@/contracts";
 
 interface CompilePanelProps {
   brandId: string;
@@ -14,8 +14,20 @@ interface CompilePanelProps {
   onCompileSuccess: () => void;
 }
 
-const STAGE_LABELS: Record<CompileStage, string> = {
+// Stage labels for backend stage strings (flexible mapping)
+const STAGE_LABELS: Record<string, string> = {
+  // Backend stage names (lowercase)
+  queued: "Waiting in queue",
+  evidence_gathering: "Gathering evidence",
+  normalizing: "Normalizing data",
+  bundling: "Bundling content",
+  llm_processing: "Analyzing with AI",
+  qa_check: "Quality checks",
+  merging: "Merging results",
+  done: "Complete",
+  // Legacy uppercase names for compatibility
   QUEUED: "Waiting in queue",
+  PENDING: "Starting...",
   ENSURE_EVIDENCE: "Gathering evidence",
   NORMALIZE: "Normalizing data",
   BUNDLE: "Bundling content",
@@ -25,11 +37,28 @@ const STAGE_LABELS: Record<CompileStage, string> = {
   DONE: "Complete",
 };
 
-// Polling intervals in ms
-const FAST_POLL_INTERVAL = 2000; // 2 seconds
-const SLOW_POLL_INTERVAL = 5000; // 5 seconds
-const FAST_POLL_DURATION = 60000; // 60 seconds
-const MAX_POLL_DURATION = 300000; // 5 minutes
+// Helper to compute percent from sources_completed/sources_total
+function computeProgress(status: CompileStatus | null): number {
+  if (!status?.progress) return 0;
+  const { sources_completed, sources_total } = status.progress;
+  if (sources_total === 0) return 0;
+  return Math.round((sources_completed / sources_total) * 100);
+}
+
+// Helper to get stage label
+function getStageLabel(status: CompileStatus | null): string {
+  if (!status) return "Starting...";
+  if (status.status === "SUCCEEDED") return "Complete!";
+  const stage = status.progress?.stage || "queued";
+  return STAGE_LABELS[stage] || `Processing: ${stage}`;
+}
+
+// Polling intervals in ms - exponential backoff
+const INITIAL_POLL_INTERVAL = 2000; // 2 seconds
+const MAX_POLL_INTERVAL = 10000; // 10 seconds max
+const BACKOFF_MULTIPLIER = 1.5; // exponential backoff factor
+const MAX_POLL_DURATION = 300000; // 5 minutes total timeout
+const MAX_CONSECUTIVE_ERRORS = 3; // stop after 3 consecutive errors
 
 export function CompilePanel({
   brandId,
@@ -44,89 +73,115 @@ export function CompilePanel({
   const [error, setError] = useState<string | null>(null);
 
   // Refs for polling control
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentIntervalRef = useRef<number>(INITIAL_POLL_INTERVAL);
+  const consecutiveErrorsRef = useRef<number>(0);
+  const isPollingRef = useRef<boolean>(false);
+
+  // Stop polling helper
+  const stopPolling = useCallback(() => {
+    isPollingRef.current = false;
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      stopPolling();
     };
-  }, []);
+  }, [stopPolling]);
 
-  // Poll for compile status
+  // Poll for compile status with exponential backoff
   const pollStatus = useCallback(async () => {
-    if (!compileRunId) return;
+    if (!compileRunId || !isPollingRef.current) return;
 
     try {
       const newStatus = await api.getCompileStatus(brandId, compileRunId);
       setStatus(newStatus);
+      consecutiveErrorsRef.current = 0; // Reset error count on success
 
       // Check for terminal states
       if (newStatus.status === "SUCCEEDED") {
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-        }
+        stopPolling();
         onCompileSuccess();
         return;
       }
 
       if (newStatus.status === "FAILED") {
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-        }
+        stopPolling();
         setError(newStatus.error || "Compile failed");
         return;
       }
 
-      // Adjust polling interval based on elapsed time
+      // Check total timeout
       if (startTimeRef.current) {
         const elapsed = Date.now() - startTimeRef.current;
-
         if (elapsed > MAX_POLL_DURATION) {
-          // Timeout
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-          }
-          setError("Compile timed out. Please try again.");
+          stopPolling();
+          setError("Compile timed out after 5 minutes. Please try again.");
           return;
         }
+      }
 
-        // Switch to slow polling after 60s
-        if (elapsed > FAST_POLL_DURATION) {
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = setInterval(pollStatus, SLOW_POLL_INTERVAL);
-          }
-        }
+      // Schedule next poll with exponential backoff
+      if (isPollingRef.current) {
+        currentIntervalRef.current = Math.min(
+          currentIntervalRef.current * BACKOFF_MULTIPLIER,
+          MAX_POLL_INTERVAL
+        );
+        pollTimeoutRef.current = setTimeout(pollStatus, currentIntervalRef.current);
       }
     } catch (err) {
       console.error("Failed to poll compile status:", err);
+      consecutiveErrorsRef.current += 1;
+
+      // Stop polling after too many consecutive errors
+      if (consecutiveErrorsRef.current >= MAX_CONSECUTIVE_ERRORS) {
+        stopPolling();
+        setError("Failed to check compile status. Please refresh and try again.");
+        return;
+      }
+
+      // Retry with backoff even on error
+      if (isPollingRef.current) {
+        currentIntervalRef.current = Math.min(
+          currentIntervalRef.current * BACKOFF_MULTIPLIER,
+          MAX_POLL_INTERVAL
+        );
+        pollTimeoutRef.current = setTimeout(pollStatus, currentIntervalRef.current);
+      }
     }
-  }, [brandId, compileRunId, onCompileSuccess]);
+  }, [brandId, compileRunId, onCompileSuccess, stopPolling]);
 
   // Start compile
   const handleStartCompile = useCallback(
     async (forceRefresh = false) => {
       setIsStarting(true);
       setError(null);
+      stopPolling(); // Ensure no existing poll is running
 
       try {
         const result = await api.triggerCompile(brandId, forceRefresh);
+
+        // Handle "UNCHANGED" short-circuit - backend returns existing snapshot
+        if (result.status === "UNCHANGED") {
+          // Snapshot already exists and is up-to-date
+          onCompileSuccess();
+          return;
+        }
+
         setCompileRunId(result.compile_run_id);
         startTimeRef.current = Date.now();
+        currentIntervalRef.current = INITIAL_POLL_INTERVAL;
+        consecutiveErrorsRef.current = 0;
+        isPollingRef.current = true;
 
-        // Start polling
-        pollIntervalRef.current = setInterval(pollStatus, FAST_POLL_INTERVAL);
-
-        // Initial poll
-        pollStatus();
+        // Start polling with initial delay
+        pollTimeoutRef.current = setTimeout(pollStatus, INITIAL_POLL_INTERVAL);
       } catch (err) {
         console.error("Failed to start compile:", err);
         setError("Failed to start compile. Please try again.");
@@ -134,7 +189,7 @@ export function CompilePanel({
         setIsStarting(false);
       }
     },
-    [brandId, pollStatus]
+    [brandId, pollStatus, onCompileSuccess, stopPolling]
   );
 
   // Retry compile
@@ -145,9 +200,9 @@ export function CompilePanel({
     handleStartCompile(false);
   }, [handleStartCompile]);
 
-  // Is compiling?
+  // Is compiling? (PENDING or RUNNING are the in-progress states)
   const isCompiling =
-    status?.status === "QUEUED" || status?.status === "RUNNING";
+    status?.status === "PENDING" || status?.status === "RUNNING";
 
   return (
     <div className="space-y-6">
@@ -183,12 +238,10 @@ export function CompilePanel({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-medium text-kairo-fg">
-                {status?.status === "SUCCEEDED"
-                  ? "Compile complete!"
-                  : STAGE_LABELS[status?.progress.stage || "QUEUED"]}
+                {getStageLabel(status)}
               </span>
               <span className="text-[12px] text-kairo-fg-muted">
-                {status?.progress.percent}%
+                {status?.status === "SUCCEEDED" ? "100" : computeProgress(status)}%
               </span>
             </div>
 
@@ -203,7 +256,7 @@ export function CompilePanel({
                       : "bg-kairo-accent-500"
                   }
                 `}
-                style={{ width: `${status?.progress.percent || 0}%` }}
+                style={{ width: `${status?.status === "SUCCEEDED" ? 100 : computeProgress(status)}%` }}
               />
             </div>
 

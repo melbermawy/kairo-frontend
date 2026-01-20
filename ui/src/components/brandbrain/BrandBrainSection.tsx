@@ -1,11 +1,13 @@
 "use client";
 
+import { useRef } from "react";
 import { KCard, KTag } from "@/components/ui";
 import type {
   BrandBrainOverrides,
   StringFieldNode,
   StringArrayFieldNode,
 } from "@/contracts";
+import { diagnostics } from "@/lib/debug/diagnostics";
 import { FieldNodeView } from "./FieldNodeView";
 
 type AnyFieldNode = StringFieldNode | StringArrayFieldNode;
@@ -31,6 +33,11 @@ export function BrandBrainSection({
   selectedPath,
   onFieldClick,
 }: BrandBrainSectionProps) {
+  // Render tracking for diagnostics
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+  diagnostics.trackRender(`Snapshot:${title}`);
+
   return (
     <KCard className="p-5">
       <h3 className="text-[14px] font-semibold text-kairo-fg mb-4">{title}</h3>

@@ -3,6 +3,7 @@
 
 import { mockApi } from "@/lib/mockApi";
 import { api } from "@/lib/api";
+import { transformBackendSnapshot } from "@/contracts";
 import { ConceptBuilderClient } from "./ConceptBuilderClient";
 
 interface ConceptBuilderPageProps {
@@ -33,7 +34,8 @@ export default async function ConceptBuilderPage({
   // Fetch BrandBrain snapshot for guardrails (if available)
   let snapshot = null;
   try {
-    snapshot = await api.getLatestSnapshot(brandId);
+    const backendSnapshot = await api.getLatestSnapshot(brandId);
+    snapshot = transformBackendSnapshot(backendSnapshot);
   } catch {
     // No snapshot available
   }

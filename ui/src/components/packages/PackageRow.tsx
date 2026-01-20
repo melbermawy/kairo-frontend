@@ -116,13 +116,8 @@ export function PackageRow({ pkg, brandId, opportunityTitle }: PackageRowProps) 
               ))}
             </div>
 
-            {/* Actions - always visible */}
+            {/* Actions - single Open CTA */}
             <div className="flex items-center gap-1">
-              <Link href={`/brands/${brandId}/packages/${pkg.id}`}>
-                <KButton variant="ghost" size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
-                  Edit
-                </KButton>
-              </Link>
               <Link href={`/brands/${brandId}/packages/${pkg.id}`}>
                 <KButton size="sm" className="kairo-transition-fast hover:-translate-y-px hover:scale-[1.02]">
                   Open

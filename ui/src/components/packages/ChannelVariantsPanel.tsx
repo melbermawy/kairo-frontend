@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { KButton, KCard, KTag } from "@/components/ui";
+import { VariantDrawer } from "./VariantDrawer";
 import type { Variant } from "@/lib/mockApi";
 
 interface ChannelVariantsPanelProps {
@@ -24,10 +25,30 @@ const variantStatusVariants: Record<string, "muted" | "campaign" | "evergreen"> 
 
 export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPanelProps) {
   const [activeChannel, setActiveChannel] = useState<string>(channels[0] || "x");
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(1);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const filteredVariants = variants.filter(
     (v) => v.channel === activeChannel
   );
+
+  const handleViewVariant = useCallback((variant: Variant, index: number) => {
+    setSelectedVariant(variant);
+    setSelectedVariantIndex(index);
+    setIsDrawerOpen(true);
+  }, []);
+
+  const handleCloseDrawer = useCallback(() => {
+    setIsDrawerOpen(false);
+    // Delay clearing variant to allow exit animation
+    setTimeout(() => setSelectedVariant(null), 300);
+  }, []);
+
+  const handleDuplicate = useCallback((variantId: string) => {
+    console.info("Duplicate variant", variantId);
+    // TODO: Implement actual duplication logic
+  }, []);
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -85,6 +106,8 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
               variant={variant}
               index={index + 1}
               channel={activeChannel}
+              onView={() => handleViewVariant(variant, index + 1)}
+              onDuplicate={() => handleDuplicate(variant.id)}
             />
           ))
         ) : (
@@ -105,6 +128,16 @@ export function ChannelVariantsPanel({ channels, variants }: ChannelVariantsPane
           + Add {channelLabels[activeChannel] || activeChannel} variant
         </button>
       </div>
+
+      {/* Variant Drawer */}
+      <VariantDrawer
+        variant={selectedVariant}
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+        onDuplicate={handleDuplicate}
+        channelLabel={channelLabels[activeChannel] || activeChannel}
+        variantIndex={selectedVariantIndex}
+      />
     </div>
   );
 }
@@ -113,9 +146,11 @@ interface VariantCardProps {
   variant: Variant;
   index: number;
   channel: string;
+  onView: () => void;
+  onDuplicate: () => void;
 }
 
-function VariantCard({ variant, index, channel }: VariantCardProps) {
+function VariantCard({ variant, index, channel, onView, onDuplicate }: VariantCardProps) {
   const firstLine = variant.body.split("\n")[0];
   const updatedAt = "2d ago"; // Stub since not in current data
   const owner = "Nadia"; // Stub owner
@@ -164,17 +199,17 @@ function VariantCard({ variant, index, channel }: VariantCardProps) {
           <KButton
             variant="ghost"
             size="sm"
-            onClick={() => console.info("Duplicate variant", variant.id)}
+            onClick={onDuplicate}
             className="flex-1 sm:flex-none text-xs sm:text-sm"
           >
             Duplicate
           </KButton>
           <KButton
             size="sm"
-            onClick={() => console.info("Open editor for variant", variant.id)}
+            onClick={onView}
             className="flex-1 sm:flex-none text-xs sm:text-sm"
           >
-            Open editor
+            View
           </KButton>
         </div>
       </div>

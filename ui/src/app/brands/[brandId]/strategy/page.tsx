@@ -3,6 +3,7 @@
 
 import { api } from "@/lib/api";
 import { BrandBrainClient } from "@/components/brandbrain";
+import { transformBackendSnapshot } from "@/contracts";
 
 interface StrategyPageProps {
   params: Promise<{ brandId: string }>;
@@ -11,12 +12,11 @@ interface StrategyPageProps {
 export default async function StrategyPage({ params }: StrategyPageProps) {
   const { brandId } = await params;
 
-  // Fetch brand and snapshot data
-  const [brand, snapshot, overrides] = await Promise.all([
-    api.getBrand(brandId),
-    api.getLatestSnapshot(brandId).catch(() => null),
-    api.getOverrides(brandId).catch(() => null),
-  ]);
+  // Use bootstrap for combined fetch (will use single endpoint when backend supports it)
+  const { brand, snapshot: backendSnapshot, overrides } = await api.getStrategyBootstrap(brandId);
+
+  // Transform backend snapshot format to frontend format
+  const snapshot = backendSnapshot ? transformBackendSnapshot(backendSnapshot) : null;
 
   return (
     <BrandBrainClient

@@ -11,9 +11,40 @@ import type {
   BrandBrainSnapshot,
   BrandBrainOverrides,
   CompileStatus,
+  CompileTriggerResponse,
+  BackendSnapshotResponse,
+  SnapshotHistoryResponse,
   BrandBrainEvidence,
   OverridesPatchRequest,
 } from "@/contracts";
+
+// ============================================
+// BOOTSTRAP RETURN TYPES
+// ============================================
+
+/**
+ * Return type for strategy page bootstrap.
+ * Backend: GET /api/brands/{id}/bootstrap
+ *
+ * Note: For strategy page, if hasSnapshot is true, getStrategyBootstrap
+ * also fetches the full snapshot (2 requests). Onboarding only needs 1 request.
+ */
+export interface StrategyBootstrap {
+  brand: BrandCore;
+  snapshot: BackendSnapshotResponse | null;
+  overrides: BrandBrainOverrides | null;
+  hasSnapshot: boolean;
+}
+
+/**
+ * Return type for onboarding page bootstrap.
+ * Backend: GET /api/brands/{id}/bootstrap (single request)
+ */
+export interface OnboardingBootstrap {
+  brand: BrandCore;
+  onboarding: BrandOnboarding;
+  sources: SourceConnection[];
+}
 
 // ============================================
 // API INTERFACE
@@ -59,12 +90,12 @@ export interface BrandBrainApi {
   triggerCompile(
     brandId: string,
     forceRefresh?: boolean
-  ): Promise<{ compile_run_id: string; status: string }>;
+  ): Promise<CompileTriggerResponse>;
   getCompileStatus(brandId: string, compileRunId: string): Promise<CompileStatus>;
 
-  // Snapshot
-  getLatestSnapshot(brandId: string): Promise<BrandBrainSnapshot>;
-  getSnapshotHistory(brandId: string): Promise<BrandBrainSnapshot[]>;
+  // Snapshot (returns backend wrapped format)
+  getLatestSnapshot(brandId: string): Promise<BackendSnapshotResponse>;
+  getSnapshotHistory(brandId: string): Promise<SnapshotHistoryResponse>;
 
   // Overrides
   getOverrides(brandId: string): Promise<BrandBrainOverrides>;
@@ -76,6 +107,15 @@ export interface BrandBrainApi {
   // Evidence
   getEvidence(evidenceId: string): Promise<BrandBrainEvidence>;
   getEvidenceBatch(evidenceIds: string[]): Promise<BrandBrainEvidence[]>;
+
+  // Bootstrap (single-request page data)
+  // These methods combine multiple fetches. If backend supports native bootstrap
+  // endpoint, it uses that; otherwise falls back to parallel fetches.
+  getStrategyBootstrap(brandId: string): Promise<StrategyBootstrap>;
+  getOnboardingBootstrap(brandId: string): Promise<OnboardingBootstrap>;
+
+  // Check if snapshot exists without fetching full content (lightweight)
+  hasSnapshot(brandId: string): Promise<boolean>;
 }
 
 // ============================================

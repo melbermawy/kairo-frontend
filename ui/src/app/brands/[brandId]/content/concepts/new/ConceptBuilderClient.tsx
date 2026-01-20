@@ -4,9 +4,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KButton, KCard, KTag } from "@/components/ui";
-import { mockApi } from "@/lib/mockApi";
 import type { Brand, OpportunityWithEvidence, PackageChannel } from "@/lib/mockApi";
-import type { BrandBrainSnapshot, ConceptDraft } from "@/contracts";
+import type { BrandBrainSnapshot } from "@/contracts";
 
 interface ConceptBuilderClientProps {
   brand: Brand;
@@ -82,32 +81,26 @@ export function ConceptBuilderClient({
   }, []);
 
   // Create package from concept
-  // Note: In mock mode, we navigate to the packages list since client-side
-  // mutations don't persist to server components. In production with a real
-  // API, this would navigate to the specific package.
-  const handleCreatePackage = useCallback(async () => {
+  // Navigate to package detail page with concept data in URL params.
+  // The server component will create the package on-the-fly.
+  const handleCreatePackage = useCallback(() => {
     if (isCreating || selectedChannels.length === 0) return;
     setIsCreating(true);
 
-    try {
-      const concept: ConceptDraft = {
-        one_liner: oneLiner,
-        core_argument: coreArgument,
-        beats: beats.filter((b) => b.trim()),
-        proof_points: proofPoints.filter((p) => p.trim()),
-        selected_channels: selectedChannels,
-        opportunity_id: opportunity?.id || null,
-      };
-
-      await mockApi.createPackageFromConcept(brand.id, concept);
-      // Navigate to packages list - in mock mode the specific package won't
-      // persist to the server, but this demonstrates the flow
-      router.push(`/brands/${brand.id}/packages`);
-    } catch (err) {
-      console.error("Failed to create package:", err);
-    } finally {
-      setIsCreating(false);
+    // Build URL with concept data as query params
+    const params = new URLSearchParams();
+    params.set("one_liner", oneLiner);
+    params.set("core_argument", coreArgument);
+    params.set("beats", beats.filter((b) => b.trim()).join("|"));
+    params.set("proof_points", proofPoints.filter((p) => p.trim()).join("|"));
+    params.set("channels", selectedChannels.join(","));
+    if (opportunity?.id) {
+      params.set("opportunityId", opportunity.id);
     }
+
+    // Navigate to the package detail page with "new-from-concept" as the packageId
+    // The server component will create the package using the query params
+    router.push(`/brands/${brand.id}/packages/new-from-concept?${params.toString()}`);
   }, [
     isCreating,
     brand.id,

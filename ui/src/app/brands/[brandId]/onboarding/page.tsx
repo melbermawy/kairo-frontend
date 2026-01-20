@@ -11,12 +11,8 @@ interface OnboardingPageProps {
 export default async function OnboardingPage({ params }: OnboardingPageProps) {
   const { brandId } = await params;
 
-  // Fetch initial data for SSR
-  const [brand, onboarding, sources] = await Promise.all([
-    api.getBrand(brandId),
-    api.getOnboarding(brandId),
-    api.listSources(brandId),
-  ]);
+  // Use bootstrap for combined fetch (will use single endpoint when backend supports it)
+  const { brand, onboarding, sources } = await api.getOnboardingBootstrap(brandId);
 
   return (
     <OnboardingWizardClient

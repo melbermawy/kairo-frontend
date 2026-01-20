@@ -492,4 +492,27 @@ export const realApi = {
     const bootstrap = await this._fetchBootstrap(brandId);
     return bootstrap.latest !== null && bootstrap.latest.has_data;
   },
+
+  // ============================================
+  // TODAY BOARD (Opportunities v2)
+  // Phase 3: GET + Regenerate with polling
+  // ============================================
+
+  async getTodayBoard(brandId: string): Promise<import("@/contracts/backendContracts").TodayBoardDTO> {
+    const { TodayBoardDTOSchema } = await import("@/contracts/backendContracts");
+    return fetchApi(`/api/brands/${brandId}/today/`, TodayBoardDTOSchema);
+  },
+
+  /**
+   * Trigger regeneration of the Today board.
+   * Returns job_id for polling GET /today until terminal state.
+   */
+  async triggerRegenerate(brandId: string): Promise<import("@/contracts/backendContracts").RegenerateResponseDTO> {
+    const { RegenerateResponseDTOSchema } = await import("@/contracts/backendContracts");
+    return fetchApi(
+      `/api/brands/${brandId}/today/regenerate/`,
+      RegenerateResponseDTOSchema,
+      { method: "POST" }
+    );
+  },
 };

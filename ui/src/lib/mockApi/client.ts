@@ -545,4 +545,197 @@ export const mockApi = {
       updates,
     });
   },
+
+  // ============================================
+  // SERVER-SIDE PACKAGE CREATION
+  // These methods create packages synchronously for server components
+  // ============================================
+
+  /**
+   * Get or create a package from an opportunity (synchronous, for server components).
+   * If packageId starts with "new-from-opp-", creates a new package from the opportunity.
+   * Otherwise, returns the existing package.
+   */
+  getOrCreatePackageFromOpportunity(
+    brandId: string,
+    packageId: string
+  ): ContentPackageWithEvidence {
+    // Verify brand exists
+    this.getBrand(brandId);
+
+    // Check if this is a "create new" request
+    if (packageId.startsWith("new-from-opp-")) {
+      const opportunityId = packageId.replace("new-from-opp-", "");
+      const opp = opportunities.find((o) => o.id === opportunityId);
+      if (!opp) {
+        throw new NotFoundError("Opportunity", opportunityId);
+      }
+
+      // Check if we already created a package for this opportunity in this session
+      const existingPkg = packages.find(
+        (p) => p.opportunity_id === opportunityId && p.id.startsWith("pkg_new_")
+      );
+      if (existingPkg) {
+        const hydratedEvidence = existingPkg.evidence_refs
+          .map((id) => evidence.find((e) => e.id === id))
+          .filter((e): e is EvidenceItem => e !== undefined);
+        return validateOrThrow(
+          ContentPackageWithEvidenceSchema,
+          { ...existingPkg, evidence: hydratedEvidence },
+          `getOrCreatePackageFromOpportunity(${packageId})`
+        );
+      }
+
+      // Create the package
+      const newPkgId = `pkg_new_${opportunityId}`;
+      const platforms = (opp.platforms || ["x"]) as PackageChannel[];
+      const variants = platforms.map((channel, i) => ({
+        id: `var_${newPkgId}_${i}`,
+        channel,
+        status: "draft" as const,
+        body: `Draft content for ${channel} based on: ${opp.title}`,
+        notes: "",
+        score: 0,
+      }));
+
+      const newPackage: ContentPackage = {
+        id: newPkgId,
+        opportunity_id: opportunityId,
+        title: opp.title,
+        thesis: opp.hook,
+        outline_beats: opp.why_now.slice(0, 3),
+        cta: "Learn more",
+        format: opp.format_target[0] || "shortform_video",
+        deliverables: variants.map((v) => ({
+          channel: v.channel,
+          variant_id: v.id,
+          label: `${v.channel} post`,
+        })),
+        variants,
+        evidence_refs: opp.evidence_ids,
+        quality: { score: 50, band: "needs_work", issues: ["Draft content needs review"] },
+      };
+
+      packages.push(newPackage);
+      console.log("[mockApi] getOrCreatePackageFromOpportunity - created new package", {
+        brandId,
+        opportunityId,
+        newPackageId: newPkgId,
+      });
+
+      const hydratedEvidence = newPackage.evidence_refs
+        .map((id) => evidence.find((e) => e.id === id))
+        .filter((e): e is EvidenceItem => e !== undefined);
+
+      return validateOrThrow(
+        ContentPackageWithEvidenceSchema,
+        { ...newPackage, evidence: hydratedEvidence },
+        `getOrCreatePackageFromOpportunity(${packageId})`
+      );
+    }
+
+    // Regular package lookup
+    return this.getPackage(brandId, packageId);
+  },
+
+  /**
+   * Get or create a package from concept data passed via URL params (synchronous).
+   * If packageId starts with "new-from-concept", creates from query params.
+   */
+  getOrCreatePackageFromConcept(
+    brandId: string,
+    packageId: string,
+    conceptData?: {
+      one_liner: string;
+      core_argument: string;
+      beats: string[];
+      proof_points: string[];
+      selected_channels: string[];
+      opportunity_id: string | null;
+    }
+  ): ContentPackageWithEvidence {
+    // Verify brand exists
+    this.getBrand(brandId);
+
+    // Check if this is a "create new" request
+    if (packageId.startsWith("new-from-concept") && conceptData) {
+      const conceptKey = conceptData.opportunity_id || conceptData.one_liner.slice(0, 20);
+
+      // Check if we already created this package
+      const existingPkg = packages.find(
+        (p) => p.id === `pkg_concept_${conceptKey.replace(/\W/g, "_")}`
+      );
+      if (existingPkg) {
+        const hydratedEvidence = existingPkg.evidence_refs
+          .map((id) => evidence.find((e) => e.id === id))
+          .filter((e): e is EvidenceItem => e !== undefined);
+        return validateOrThrow(
+          ContentPackageWithEvidenceSchema,
+          { ...existingPkg, evidence: hydratedEvidence },
+          `getOrCreatePackageFromConcept(${packageId})`
+        );
+      }
+
+      // Create the package
+      const newPkgId = `pkg_concept_${conceptKey.replace(/\W/g, "_")}`;
+      const channels = conceptData.selected_channels as PackageChannel[];
+      const variants = channels.map((channel, i) => ({
+        id: `var_${newPkgId}_${i}`,
+        channel,
+        status: "draft" as const,
+        body: `${conceptData.one_liner}\n\n${conceptData.core_argument}`,
+        notes: conceptData.proof_points.join("\n"),
+        score: 0,
+      }));
+
+      // Get opportunity if provided
+      let oppTitle = conceptData.one_liner;
+      let evidenceRefs: string[] = [];
+      if (conceptData.opportunity_id) {
+        const opp = opportunities.find((o) => o.id === conceptData.opportunity_id);
+        if (opp) {
+          oppTitle = opp.title;
+          evidenceRefs = opp.evidence_ids;
+        }
+      }
+
+      const newPackage: ContentPackage = {
+        id: newPkgId,
+        opportunity_id: conceptData.opportunity_id || null,
+        title: oppTitle,
+        thesis: conceptData.core_argument,
+        outline_beats: conceptData.beats,
+        cta: "Learn more",
+        format: "shortform_video",
+        deliverables: variants.map((v) => ({
+          channel: v.channel,
+          variant_id: v.id,
+          label: `${v.channel} post`,
+        })),
+        variants,
+        evidence_refs: evidenceRefs,
+        quality: { score: 60, band: "partial", issues: ["Content from concept builder"] },
+      };
+
+      packages.push(newPackage);
+      console.log("[mockApi] getOrCreatePackageFromConcept - created new package", {
+        brandId,
+        conceptData,
+        newPackageId: newPkgId,
+      });
+
+      const hydratedEvidence = newPackage.evidence_refs
+        .map((id) => evidence.find((e) => e.id === id))
+        .filter((e): e is EvidenceItem => e !== undefined);
+
+      return validateOrThrow(
+        ContentPackageWithEvidenceSchema,
+        { ...newPackage, evidence: hydratedEvidence },
+        `getOrCreatePackageFromConcept(${packageId})`
+      );
+    }
+
+    // Regular package lookup
+    return this.getPackage(brandId, packageId);
+  },
 };

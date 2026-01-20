@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lato, Lugrasimo } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { DiagnosticOverlay } from "@/components/debug/DiagnosticOverlay";
 
 const lato = Lato({
   variable: "--font-lato",
@@ -28,7 +29,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${lato.variable} ${lugrasimo.variable} antialiased`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <DiagnosticOverlay />
+        </ThemeProvider>
       </body>
     </html>
   );

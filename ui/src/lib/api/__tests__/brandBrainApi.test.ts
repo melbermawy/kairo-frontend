@@ -1,8 +1,10 @@
 // src/lib/api/__tests__/brandBrainApi.test.ts
 // Tests for BrandBrain API - onboarding autosave, compile polling, overrides
+// Updated for backend-compatible response shapes
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mockBrandBrainApi } from "../mockBrandBrain";
+import { transformBackendSnapshot } from "@/contracts";
 
 describe("BrandBrain API", () => {
   beforeEach(() => {
@@ -78,7 +80,8 @@ describe("BrandBrain API", () => {
 
       expect(result.compile_run_id).toBeDefined();
       expect(result.compile_run_id).toMatch(/^compile_/);
-      expect(result.status).toBe("QUEUED");
+      // Backend returns PENDING, not QUEUED
+      expect(result.status).toBe("PENDING");
     });
 
     it("should transition through compile stages", async () => {
@@ -95,7 +98,9 @@ describe("BrandBrain API", () => {
       let status = await statusPromise;
 
       expect(status.status).toBe("RUNNING");
-      expect(status.progress.percent).toBeGreaterThanOrEqual(0);
+      // Backend uses sources_completed/sources_total, not percent
+      expect(status.progress?.sources_completed).toBeGreaterThanOrEqual(0);
+      expect(status.progress?.sources_total).toBeGreaterThan(0);
 
       // Advance time to progress through stages
       await vi.advanceTimersByTimeAsync(5000);
@@ -105,7 +110,7 @@ describe("BrandBrain API", () => {
       status = await statusPromise;
 
       // Should have progressed
-      expect(status.progress.percent).toBeGreaterThan(0);
+      expect(status.progress?.sources_completed).toBeGreaterThan(0);
     });
 
     it("should reach SUCCEEDED status after completion", async () => {
@@ -117,25 +122,27 @@ describe("BrandBrain API", () => {
       const { compile_run_id } = await compilePromise;
 
       // Wait for completion
-      // Mock compile: 7 stages × 20 increments × 200ms = 28s, plus buffer
-      await vi.advanceTimersByTimeAsync(30000);
+      // Mock compile: 7 stages × 5 source updates × 200ms = 7s, plus buffer
+      await vi.advanceTimersByTimeAsync(10000);
 
       const statusPromise = mockBrandBrainApi.getCompileStatus(brandId, compile_run_id);
       await vi.advanceTimersByTimeAsync(100);
       const status = await statusPromise;
 
       expect(status.status).toBe("SUCCEEDED");
-      expect(status.progress.stage).toBe("DONE");
-      expect(status.progress.percent).toBe(100);
+      // SUCCEEDED status includes snapshot
+      expect(status.snapshot).toBeDefined();
+      expect(status.snapshot?.snapshot_id).toBeDefined();
     });
   });
 
-  describe("Overrides patch payload correctness", () => {
-    it("should correctly apply set_overrides", async () => {
+  describe("Overrides patch payload correctness (backend semantics)", () => {
+    it("should correctly apply overrides_json merge", async () => {
       const brandId = "brand_wendys";
 
+      // Backend semantics: overrides_json merges with existing
       const patchPromise = mockBrandBrainApi.patchOverrides(brandId, {
-        set_overrides: {
+        overrides_json: {
           "voice.tone_tags": ["Custom", "Values"],
         },
       });
@@ -145,14 +152,15 @@ describe("BrandBrain API", () => {
       expect(result.overrides_json["voice.tone_tags"]).toEqual(["Custom", "Values"]);
     });
 
-    it("should correctly apply pin_paths", async () => {
+    it("should correctly apply pinned_paths replacement", async () => {
       const brandId = "brand_wendys";
 
+      // Backend semantics: pinned_paths replaces entire list
       const patchPromise = mockBrandBrainApi.patchOverrides(brandId, {
-        set_overrides: {
+        overrides_json: {
           "positioning.what_we_do": "Pinned value",
         },
-        pin_paths: ["positioning.what_we_do"],
+        pinned_paths: ["positioning.what_we_do"],
       });
       await vi.advanceTimersByTimeAsync(200);
       const result = await patchPromise;
@@ -161,41 +169,23 @@ describe("BrandBrain API", () => {
       expect(result.overrides_json["positioning.what_we_do"]).toBe("Pinned value");
     });
 
-    it("should correctly apply unpin_paths", async () => {
-      const brandId = "brand_wendys";
-
-      // First pin
-      const pin1Promise = mockBrandBrainApi.patchOverrides(brandId, {
-        pin_paths: ["voice.do"],
-      });
-      await vi.advanceTimersByTimeAsync(200);
-      await pin1Promise;
-
-      // Then unpin
-      const unpinPromise = mockBrandBrainApi.patchOverrides(brandId, {
-        unpin_paths: ["voice.do"],
-      });
-      await vi.advanceTimersByTimeAsync(200);
-      const result = await unpinPromise;
-
-      expect(result.pinned_paths).not.toContain("voice.do");
-    });
-
-    it("should correctly apply remove_overrides", async () => {
+    it("should correctly remove overrides with null value", async () => {
       const brandId = "brand_wendys";
 
       // First set
       const setPromise = mockBrandBrainApi.patchOverrides(brandId, {
-        set_overrides: {
+        overrides_json: {
           "constraints.taboos": ["Custom taboo"],
         },
       });
       await vi.advanceTimersByTimeAsync(200);
       await setPromise;
 
-      // Then remove
+      // Backend semantics: null value deletes the key
       const removePromise = mockBrandBrainApi.patchOverrides(brandId, {
-        remove_overrides: ["constraints.taboos"],
+        overrides_json: {
+          "constraints.taboos": null,
+        },
       });
       await vi.advanceTimersByTimeAsync(200);
       const result = await removePromise;
@@ -203,14 +193,39 @@ describe("BrandBrain API", () => {
       expect(result.overrides_json["constraints.taboos"]).toBeUndefined();
     });
 
+    it("should replace pinned_paths entirely", async () => {
+      const brandId = "brand_wendys";
+
+      // First set some pins
+      const pin1Promise = mockBrandBrainApi.patchOverrides(brandId, {
+        pinned_paths: ["voice.do", "voice.dont"],
+      });
+      await vi.advanceTimersByTimeAsync(200);
+      const result1 = await pin1Promise;
+      expect(result1.pinned_paths).toContain("voice.do");
+      expect(result1.pinned_paths).toContain("voice.dont");
+
+      // Backend semantics: pinned_paths replaces entire list
+      const pin2Promise = mockBrandBrainApi.patchOverrides(brandId, {
+        pinned_paths: ["voice.emoji_policy"],
+      });
+      await vi.advanceTimersByTimeAsync(200);
+      const result2 = await pin2Promise;
+
+      // Old pins should be gone, only new one exists
+      expect(result2.pinned_paths).not.toContain("voice.do");
+      expect(result2.pinned_paths).not.toContain("voice.dont");
+      expect(result2.pinned_paths).toContain("voice.emoji_policy");
+    });
+
     it("should handle combined operations in single patch", async () => {
       const brandId = "brand_wendys";
 
       const patchPromise = mockBrandBrainApi.patchOverrides(brandId, {
-        set_overrides: {
+        overrides_json: {
           "voice.emoji_policy": "No emojis allowed",
         },
-        pin_paths: ["voice.emoji_policy"],
+        pinned_paths: ["voice.emoji_policy"],
       });
       await vi.advanceTimersByTimeAsync(200);
       const result = await patchPromise;
@@ -263,40 +278,68 @@ describe("BrandBrain API", () => {
     });
   });
 
-  describe("Snapshot retrieval", () => {
-    it("should return a valid snapshot structure", async () => {
+  describe("Snapshot retrieval (backend wrapped format)", () => {
+    it("should return a valid backend snapshot response", async () => {
       const brandId = "brand_wendys";
 
       const snapshotPromise = mockBrandBrainApi.getLatestSnapshot(brandId);
       await vi.advanceTimersByTimeAsync(200);
-      const snapshot = await snapshotPromise;
+      const backendResponse = await snapshotPromise;
 
-      // Check required sections exist
-      expect(snapshot.positioning).toBeDefined();
-      expect(snapshot.voice).toBeDefined();
-      expect(snapshot.pillars).toBeDefined();
-      expect(snapshot.constraints).toBeDefined();
-      expect(snapshot.platform_profiles).toBeDefined();
-      expect(snapshot.examples).toBeDefined();
-      expect(snapshot.meta).toBeDefined();
-
-      // Check FieldNode structure
-      expect(snapshot.positioning.what_we_do.value).toBeDefined();
-      expect(snapshot.positioning.what_we_do.confidence).toBeDefined();
-      expect(snapshot.positioning.what_we_do.sources).toBeDefined();
-      expect(typeof snapshot.positioning.what_we_do.locked).toBe("boolean");
+      // Backend returns wrapped format
+      expect(backendResponse.snapshot_id).toBeDefined();
+      expect(backendResponse.brand_id).toBe(brandId);
+      expect(backendResponse.snapshot_json).toBeDefined();
+      expect(backendResponse.created_at).toBeDefined();
     });
 
-    it("should include meta information", async () => {
+    it("should transform to frontend format correctly", async () => {
       const brandId = "brand_wendys";
 
       const snapshotPromise = mockBrandBrainApi.getLatestSnapshot(brandId);
       await vi.advanceTimersByTimeAsync(200);
-      const snapshot = await snapshotPromise;
+      const backendResponse = await snapshotPromise;
 
-      expect(snapshot.meta.compiled_at).toBeDefined();
-      expect(snapshot.meta.evidence_summary).toBeDefined();
-      expect(snapshot.meta.evidence_summary.total_count).toBeGreaterThanOrEqual(0);
+      // Transform to frontend format
+      const snapshot = transformBackendSnapshot(backendResponse);
+
+      // Check required sections exist in transformed snapshot
+      expect(snapshot).not.toBeNull();
+      if (snapshot) {
+        expect(snapshot.positioning).toBeDefined();
+        expect(snapshot.voice).toBeDefined();
+        expect(snapshot.pillars).toBeDefined();
+        expect(snapshot.constraints).toBeDefined();
+        expect(snapshot.platform_profiles).toBeDefined();
+        expect(snapshot.examples).toBeDefined();
+        expect(snapshot.meta).toBeDefined();
+
+        // Check FieldNode structure
+        expect(snapshot.positioning.what_we_do.value).toBeDefined();
+        expect(snapshot.positioning.what_we_do.confidence).toBeDefined();
+        expect(snapshot.positioning.what_we_do.sources).toBeDefined();
+        expect(typeof snapshot.positioning.what_we_do.locked).toBe("boolean");
+
+        // Check meta from created_at
+        expect(snapshot.meta.compiled_at).toBeDefined();
+      }
+    });
+  });
+
+  describe("Snapshot history (paginated format)", () => {
+    it("should return paginated history response", async () => {
+      const brandId = "brand_wendys";
+
+      const historyPromise = mockBrandBrainApi.getSnapshotHistory(brandId);
+      await vi.advanceTimersByTimeAsync(200);
+      const history = await historyPromise;
+
+      // Backend returns paginated format
+      expect(history.snapshots).toBeDefined();
+      expect(Array.isArray(history.snapshots)).toBe(true);
+      expect(history.page).toBeDefined();
+      expect(history.page_size).toBeDefined();
+      expect(history.total).toBeDefined();
     });
   });
 });

@@ -235,6 +235,7 @@ export const VariantSchema = z.object({
 });
 
 export type Variant = z.infer<typeof VariantSchema>;
+export type PackageChannel = z.infer<typeof PackageChannelSchema>;
 
 export const DeliverableSchema = z.object({
   channel: PackageChannelSchema,

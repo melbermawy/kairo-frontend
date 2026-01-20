@@ -1,19 +1,33 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { KCard, KButton } from "@/components/ui";
 import { api } from "@/lib/api";
-import type {
-  BrandCore,
-  BrandBrainSnapshot,
-  BrandBrainOverrides,
-  OverridesPatchRequest,
+import {
+  transformBackendSnapshot,
+  type BrandCore,
+  type BrandBrainSnapshot,
+  type BrandBrainOverrides,
+  type OverridesPatchRequest,
 } from "@/contracts";
+import {
+  diagnostics,
+  registerPoller,
+  unregisterPoller,
+  setPollerTimeout,
+} from "@/lib/debug/diagnostics";
 import { BrandBrainSection } from "./BrandBrainSection";
 import { FieldEditPanel } from "./FieldEditPanel";
 import { CompileStatusBadge } from "./CompileStatusBadge";
+
+// Polling constants
+const INITIAL_POLL_INTERVAL = 2000; // 2 seconds
+const MAX_POLL_INTERVAL = 10000; // 10 seconds max
+const BACKOFF_MULTIPLIER = 1.5;
+const MAX_POLL_DURATION = 300000; // 5 minutes
+const MAX_CONSECUTIVE_ERRORS = 3;
 
 interface BrandBrainClientProps {
   brand: BrandCore;
@@ -32,6 +46,45 @@ export function BrandBrainClient({
   const [selectedFieldPath, setSelectedFieldPath] = useState<string | null>(null);
   const [isCompiling, setIsCompiling] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [compileError, setCompileError] = useState<string | null>(null);
+
+  // Render tracking for diagnostics
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+  diagnostics.trackRender("BrandBrainClient");
+  diagnostics.maybePrintSummary();
+
+  // Refs for compile polling control
+  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isPollingRef = useRef<boolean>(false);
+  const compileRunIdRef = useRef<string | null>(null);
+  const pollerAbortRef = useRef<AbortController | null>(null);
+
+  // Cleanup polling on unmount - with single-flight guard
+  useEffect(() => {
+    return () => {
+      isPollingRef.current = false;
+      if (pollTimeoutRef.current) {
+        clearTimeout(pollTimeoutRef.current);
+      }
+      // Unregister poller if exists
+      if (compileRunIdRef.current) {
+        unregisterPoller(brand.id, compileRunIdRef.current);
+      }
+      pollerAbortRef.current?.abort();
+    };
+  }, [brand.id]);
+
+  // Kill-switch: disable entire client
+  if (diagnostics.killSwitches.disableBrandBrainClient) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-kairo-fg-muted">
+          [DIAG] BrandBrainClient disabled via DIAG_DISABLE_BRANDBRAIN_CLIENT
+        </p>
+      </div>
+    );
+  }
 
   // Calculate freshness
   const compiledAt = snapshot?.meta.compiled_at
@@ -41,58 +94,184 @@ export function BrandBrainClient({
     ? Date.now() - compiledAt.getTime() > 24 * 60 * 60 * 1000 // 24 hours
     : true;
 
-  // Handle compile trigger
-  const handleCompile = useCallback(async () => {
-    setIsCompiling(true);
+  // Refresh data after successful compile
+  const refreshData = useCallback(async () => {
     try {
-      const result = await api.triggerCompile(brand.id);
-      // Poll for completion
-      let status = await api.getCompileStatus(brand.id, result.compile_run_id);
-      while (status.status === "QUEUED" || status.status === "RUNNING") {
-        await new Promise((r) => setTimeout(r, 2000));
-        status = await api.getCompileStatus(brand.id, result.compile_run_id);
-      }
-
-      if (status.status === "SUCCEEDED") {
-        // Refresh data
-        const [newSnapshot, newOverrides] = await Promise.all([
-          api.getLatestSnapshot(brand.id),
-          api.getOverrides(brand.id),
-        ]);
-        setSnapshot(newSnapshot);
-        setOverrides(newOverrides);
-      }
+      const [backendSnapshot, newOverrides] = await Promise.all([
+        api.getLatestSnapshot(brand.id),
+        api.getOverrides(brand.id),
+      ]);
+      const transformed = transformBackendSnapshot(backendSnapshot);
+      if (transformed) setSnapshot(transformed);
+      setOverrides(newOverrides);
     } catch (err) {
-      console.error("Failed to compile:", err);
-    } finally {
-      setIsCompiling(false);
+      console.error("Failed to refresh data:", err);
     }
   }, [brand.id]);
 
+  // Handle compile trigger with non-blocking polling and single-flight guard
+  const handleCompile = useCallback(async () => {
+    // Kill-switch: disable polling
+    if (diagnostics.killSwitches.disablePolling) {
+      setCompileError("[DIAG] Polling disabled via DIAG_DISABLE_POLLING");
+      return;
+    }
+
+    setIsCompiling(true);
+    setCompileError(null);
+
+    // Stop any existing poll and unregister
+    isPollingRef.current = false;
+    if (pollTimeoutRef.current) {
+      clearTimeout(pollTimeoutRef.current);
+      pollTimeoutRef.current = null;
+    }
+    if (compileRunIdRef.current) {
+      unregisterPoller(brand.id, compileRunIdRef.current);
+    }
+    pollerAbortRef.current?.abort();
+
+    try {
+      const result = await api.triggerCompile(brand.id);
+
+      // Handle "UNCHANGED" short-circuit
+      if (result.status === "UNCHANGED") {
+        await refreshData();
+        setIsCompiling(false);
+        return;
+      }
+
+      // Single-flight guard: register poller
+      const abortController = registerPoller(brand.id, result.compile_run_id);
+      if (!abortController) {
+        // Poller already exists - skip
+        console.warn("[DIAG] Duplicate poller blocked");
+        setIsCompiling(false);
+        return;
+      }
+
+      // Start non-blocking polling
+      compileRunIdRef.current = result.compile_run_id;
+      pollerAbortRef.current = abortController;
+      isPollingRef.current = true;
+      let currentInterval = INITIAL_POLL_INTERVAL;
+      let consecutiveErrors = 0;
+      const startTime = Date.now();
+
+      const poll = async () => {
+        if (!isPollingRef.current || !compileRunIdRef.current) {
+          setIsCompiling(false);
+          unregisterPoller(brand.id, compileRunIdRef.current || "");
+          return;
+        }
+
+        // Check if aborted
+        if (pollerAbortRef.current?.signal.aborted) {
+          setIsCompiling(false);
+          return;
+        }
+
+        try {
+          const status = await api.getCompileStatus(brand.id, compileRunIdRef.current);
+          consecutiveErrors = 0;
+
+          if (status.status === "SUCCEEDED") {
+            isPollingRef.current = false;
+            unregisterPoller(brand.id, compileRunIdRef.current);
+            await refreshData();
+            setIsCompiling(false);
+            return;
+          }
+
+          if (status.status === "FAILED") {
+            isPollingRef.current = false;
+            unregisterPoller(brand.id, compileRunIdRef.current);
+            setCompileError(status.error || "Compile failed");
+            setIsCompiling(false);
+            return;
+          }
+
+          // Check timeout
+          if (Date.now() - startTime > MAX_POLL_DURATION) {
+            isPollingRef.current = false;
+            unregisterPoller(brand.id, compileRunIdRef.current);
+            setCompileError("Compile timed out after 5 minutes");
+            setIsCompiling(false);
+            return;
+          }
+
+          // Schedule next poll with backoff
+          if (isPollingRef.current) {
+            currentInterval = Math.min(currentInterval * BACKOFF_MULTIPLIER, MAX_POLL_INTERVAL);
+            const timeoutId = setTimeout(poll, currentInterval);
+            pollTimeoutRef.current = timeoutId;
+            setPollerTimeout(brand.id, compileRunIdRef.current, timeoutId);
+          }
+        } catch (err) {
+          console.error("Failed to poll compile status:", err);
+          consecutiveErrors++;
+
+          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+            isPollingRef.current = false;
+            unregisterPoller(brand.id, compileRunIdRef.current || "");
+            setCompileError("Failed to check compile status");
+            setIsCompiling(false);
+            return;
+          }
+
+          // Retry with backoff
+          if (isPollingRef.current) {
+            currentInterval = Math.min(currentInterval * BACKOFF_MULTIPLIER, MAX_POLL_INTERVAL);
+            const timeoutId = setTimeout(poll, currentInterval);
+            pollTimeoutRef.current = timeoutId;
+            if (compileRunIdRef.current) {
+              setPollerTimeout(brand.id, compileRunIdRef.current, timeoutId);
+            }
+          }
+        }
+      };
+
+      // Start first poll
+      const timeoutId = setTimeout(poll, INITIAL_POLL_INTERVAL);
+      pollTimeoutRef.current = timeoutId;
+      setPollerTimeout(brand.id, result.compile_run_id, timeoutId);
+    } catch (err) {
+      console.error("Failed to trigger compile:", err);
+      setCompileError("Failed to start compile");
+      setIsCompiling(false);
+    }
+  }, [brand.id, refreshData]);
+
   // Handle override save
+  // Backend semantics: overrides_json merges, pinned_paths replaces entire list
+  // OPTIMIZATION: Don't refetch snapshot after override - the UI applies overrides client-side
   const handleSaveOverride = useCallback(
     async (path: string, value: unknown, pin: boolean) => {
       setIsSaving(true);
       try {
-        const patch: OverridesPatchRequest = {
-          set_overrides: { [path]: value },
-        };
+        // Build the new pinned_paths list
+        const currentPinned = overrides?.pinned_paths ?? [];
+        let newPinnedPaths: string[];
 
-        // Handle pinning
-        const currentlyPinned = overrides?.pinned_paths.includes(path) ?? false;
-        if (pin && !currentlyPinned) {
-          patch.pin_paths = [path];
-        } else if (!pin && currentlyPinned) {
-          patch.unpin_paths = [path];
+        if (pin && !currentPinned.includes(path)) {
+          newPinnedPaths = [...currentPinned, path];
+        } else if (!pin && currentPinned.includes(path)) {
+          newPinnedPaths = currentPinned.filter((p) => p !== path);
+        } else {
+          newPinnedPaths = currentPinned;
         }
+
+        const patch: OverridesPatchRequest = {
+          overrides_json: { [path]: value },
+          pinned_paths: newPinnedPaths,
+        };
 
         const newOverrides = await api.patchOverrides(brand.id, patch);
         setOverrides(newOverrides);
 
-        // Refetch snapshot to get applied overrides
-        const newSnapshot = await api.getLatestSnapshot(brand.id);
-        setSnapshot(newSnapshot);
-
+        // NOTE: Removed getLatestSnapshot call here - saves ~200-500ms per override save
+        // The snapshot data doesn't change when saving overrides; overrides are stored
+        // separately and applied at render time via the overrides_json object.
         setSelectedFieldPath(null);
       } catch (err) {
         console.error("Failed to save override:", err);
@@ -104,22 +283,24 @@ export function BrandBrainClient({
   );
 
   // Handle removing override
+  // Backend semantics: null value in overrides_json deletes the key
   const handleRemoveOverride = useCallback(
     async (path: string) => {
       setIsSaving(true);
       try {
+        // Remove from pinned_paths as well
+        const currentPinned = overrides?.pinned_paths ?? [];
+        const newPinnedPaths = currentPinned.filter((p) => p !== path);
+
         const patch: OverridesPatchRequest = {
-          remove_overrides: [path],
-          unpin_paths: [path],
+          overrides_json: { [path]: null }, // null deletes the override
+          pinned_paths: newPinnedPaths,
         };
 
         const newOverrides = await api.patchOverrides(brand.id, patch);
         setOverrides(newOverrides);
 
-        // Refetch snapshot
-        const newSnapshot = await api.getLatestSnapshot(brand.id);
-        setSnapshot(newSnapshot);
-
+        // NOTE: Removed getLatestSnapshot call here - saves ~200-500ms per override remove
         setSelectedFieldPath(null);
       } catch (err) {
         console.error("Failed to remove override:", err);
@@ -127,7 +308,7 @@ export function BrandBrainClient({
         setIsSaving(false);
       }
     },
-    [brand.id]
+    [brand.id, overrides]
   );
 
   // No snapshot yet - show empty state
@@ -261,6 +442,18 @@ export function BrandBrainClient({
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
         {/* Left: Sections */}
         <div className="space-y-6">
+          {/* Kill-switch: disable snapshot rendering */}
+          {diagnostics.killSwitches.disableSnapshotRender ? (
+            <KCard className="p-5">
+              <p className="text-kairo-fg-muted">
+                [DIAG] Snapshot rendering disabled via DIAG_DISABLE_SNAPSHOT_RENDER
+              </p>
+              <p className="text-[12px] text-kairo-fg-subtle mt-2">
+                Snapshot exists with {snapshot.pillars.length} pillars, compiled at {compiledAt?.toLocaleString()}
+              </p>
+            </KCard>
+          ) : (
+          <>
           {/* Positioning */}
           <BrandBrainSection
             title="Positioning"
@@ -386,6 +579,8 @@ export function BrandBrainClient({
               )}
             </div>
           </KCard>
+          </>
+          )}
         </div>
 
         {/* Right: Edit Panel */}

@@ -7,7 +7,7 @@ export interface NavSection {
 export const navSections: NavSection[] = [
   { id: "today", label: "Today", path: "today" },
   { id: "packages", label: "Content", path: "packages" },
-  { id: "patterns", label: "Patterns", path: "patterns" },
+  // { id: "patterns", label: "Patterns", path: "patterns" }, // Hidden - not ready for production
   { id: "strategy", label: "Brand Playbook", path: "strategy" },
 ];
 

@@ -1,62 +1,44 @@
-import Link from "next/link";
-import { KButton } from "@/components/ui";
-import { PackagesTable } from "@/components/packages";
-import { ContentPipelineStrip } from "@/components/content";
-import { mockApi, NotFoundError } from "@/lib/mockApi";
+import { ContentIcon } from "@/components/layout/NavIcons";
 
 interface PackagesPageProps {
   params: Promise<{ brandId: string }>;
 }
 
 export default async function PackagesPage({ params }: PackagesPageProps) {
-  const { brandId } = await params;
-
-  let brand;
-  try {
-    brand = mockApi.getBrand(brandId);
-  } catch (e) {
-    if (e instanceof NotFoundError) {
-      return null;
-    }
-    throw e;
-  }
-
-  const packages = mockApi.listPackages(brandId);
-
-  // TODO(spec): status not in package spec, using quality.band as proxy
-  // For now, all packages are "in progress" (draft equivalent)
-  const counts = {
-    draft: packages.length,
-    inReview: 0,
-    scheduled: 0,
-    published: 0,
-  };
-
-  // TODO(spec): no lastUpdated in package spec, at-risk not computable
-  const atRiskCount = 0;
+  await params; // Consume params to avoid Next.js warning
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-kairo-fg">
-            Content Packages
-          </h1>
-          <p className="text-sm text-kairo-fg-muted mt-0.5">
-            {packages.length} package{packages.length !== 1 ? "s" : ""} for {brand.name}
-          </p>
-        </div>
-        <Link href={`/brands/${brandId}/content/concepts/new`}>
-          <KButton>New Package</KButton>
-        </Link>
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6">
+      {/* Icon */}
+      <div className="w-16 h-16 rounded-2xl bg-kairo-accent-500/10 flex items-center justify-center mb-6">
+        <ContentIcon className="w-8 h-8 text-kairo-accent-400" />
       </div>
 
-      {/* Pipeline Strip */}
-      <ContentPipelineStrip counts={counts} atRiskCount={atRiskCount} />
+      {/* Title */}
+      <h1 className="text-2xl font-semibold text-kairo-fg mb-2">
+        Content Pipeline
+      </h1>
 
-      {/* Packages table with filters */}
-      <PackagesTable packages={packages} brandId={brandId} />
+      {/* Coming Soon Badge */}
+      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-kairo-accent-500/10 border border-kairo-accent-500/20 mb-4">
+        <span className="w-2 h-2 rounded-full bg-kairo-accent-400 animate-pulse" />
+        <span className="text-sm font-medium text-kairo-accent-400">
+          Coming Soon
+        </span>
+      </div>
+
+      {/* Description */}
+      <p className="text-kairo-fg-muted text-center max-w-md leading-relaxed">
+        Transform your opportunities into production-ready content packages.
+        Draft, refine, and schedule posts across all your channels from one place.
+      </p>
+
+      {/* Decorative elements */}
+      <div className="mt-8 flex gap-3">
+        <div className="w-12 h-1 rounded-full bg-kairo-bg-elevated" />
+        <div className="w-8 h-1 rounded-full bg-kairo-bg-elevated" />
+        <div className="w-4 h-1 rounded-full bg-kairo-bg-elevated" />
+      </div>
     </div>
   );
 }
