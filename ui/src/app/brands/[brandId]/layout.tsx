@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import { api } from "@/lib/api";
+import { listBrandsServer } from "@/lib/api/server";
 import { AppShell } from "@/components/layout/AppShell";
 
 interface BrandLayoutProps {
@@ -11,8 +11,8 @@ interface BrandLayoutProps {
 export default async function BrandLayout({ children, params }: BrandLayoutProps) {
   const { brandId } = await params;
 
-  // Fetch brands list and validate current brand exists
-  const brands = await api.listBrands();
+  // Fetch brands list and validate current brand exists (using server-side API)
+  const brands = await listBrandsServer();
   const brandExists = brands.some((b) => b.id === brandId);
 
   if (!brandExists) {

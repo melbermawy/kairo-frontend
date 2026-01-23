@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import { api } from "@/lib/api";
 import { isRealApiMode } from "@/lib/env";
 import { mockApi } from "@/lib/mockApi";
+import { listBrandsServer } from "@/lib/api/server";
 
 export default async function HomePage() {
   // In real mode, get first brand from backend; in mock mode, use default
   if (isRealApiMode()) {
-    const brands = await api.listBrands();
+    const brands = await listBrandsServer();
     if (brands.length > 0) {
       redirect(`/brands/${brands[0].id}/today`);
     }

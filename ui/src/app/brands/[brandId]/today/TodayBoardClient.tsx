@@ -2,7 +2,9 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { KCard } from "@/components/ui";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
+import Link from "next/link";
+import { KCard, OpportunityCardSkeleton } from "@/components/ui";
 import { OpportunityCardV2, OpportunityDrawer } from "@/components/opportunities";
 import { TodayFocusStrip } from "@/components/today";
 import type { UITodayBoard, UIOpportunity } from "@/lib/todayAdapter";
@@ -13,6 +15,27 @@ interface TodayBoardClientProps {
   brandId: string;
   board: UITodayBoard;
 }
+
+// Staggered animation variants for cards
+const cardContainerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" as const },
+  },
+};
 
 export function TodayBoardClient({
   brandId,
@@ -110,6 +133,12 @@ export function TodayBoardClient({
   // Generate insight based on board state
   const weeklyInsight = getWeeklyInsight(opportunities, meta.state);
 
+  // Check if this is a pre-onboarding state (no snapshot compiled yet)
+  const isPreOnboarding = meta.state === "not_generated_yet";
+  const isGenerating = meta.state === "generating";
+  const isError = meta.state === "error";
+  const isInsufficientEvidence = meta.state === "insufficient_evidence";
+
   return (
     <>
       <div className="space-y-5">
@@ -128,24 +157,46 @@ export function TodayBoardClient({
             isRegenerating={regenerateState.isRegenerating}
             isPolling={isPolling}
             currentState={meta.state}
+            disabled={isPreOnboarding}
           />
         </div>
 
-        {/* Error from regenerate hook */}
-        {regenerateState.error && (
-          <div className="px-4 py-3 rounded-lg border bg-red-500/10 border-red-500/30 text-red-400">
-            <p className="text-[13px] font-medium">Regeneration failed</p>
-            <p className="text-[12px] mt-1 opacity-80">{regenerateState.error}</p>
-          </div>
+        {/* Pre-onboarding guard */}
+        {isPreOnboarding && (
+          <PreOnboardingGuard brandId={brandId} />
         )}
 
-        {/* Board state indicator for non-ready states */}
-        {meta.state !== "ready" && (
+        {/* Error from regenerate hook */}
+        {regenerateState.error && (
+          <ErrorBanner
+            title="Regeneration failed"
+            message={regenerateState.error}
+            onRetry={regenerate}
+            isRetrying={regenerateState.isRegenerating}
+          />
+        )}
+
+        {/* Helpful error states */}
+        {isError && !regenerateState.error && (
+          <ErrorStateWithGuidance
+            remediation={meta.remediation}
+            onRetry={regenerate}
+            isRetrying={regenerateState.isRegenerating}
+          />
+        )}
+
+        {/* Insufficient evidence guidance */}
+        {isInsufficientEvidence && (
+          <InsufficientEvidenceGuide brandId={brandId} />
+        )}
+
+        {/* Generating state with skeleton loading */}
+        {isGenerating && (
           <BoardStateIndicator
             state={meta.state}
             remediation={meta.remediation}
-            onRetry={meta.state === "error" ? regenerate : undefined}
-            isRetrying={regenerateState.isRegenerating}
+            progressStage={meta.progressStage}
+            progressDetail={meta.progressDetail}
           />
         )}
 
@@ -168,19 +219,39 @@ export function TodayBoardClient({
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           {/* Left: Opportunities Grid - responsive 1/2/3 columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" data-testid="opportunities-grid">
-            {opportunities.length === 0 ? (
-              <EmptyOpportunities state={meta.state} />
+            {/* Skeleton loading while generating */}
+            {isGenerating && opportunities.length === 0 ? (
+              <SkeletonGrid count={6} />
+            ) : opportunities.length === 0 ? (
+              <EmptyOpportunities
+                state={meta.state}
+                progressStage={meta.progressStage}
+                progressDetail={meta.progressDetail}
+                brandId={brandId}
+              />
             ) : (
-              opportunities.map((opp) => (
-                <OpportunityCardV2
-                  key={opp.id}
-                  opportunity={opp}
-                  snapshot={snapshot}
-                  onClick={() => handleCardClick(opp)}
-                  onPlatformClick={(platform) => handlePlatformClick(opp, platform)}
-                  isSelected={selectedOpportunity?.id === opp.id && isDrawerOpen}
-                />
-              ))
+              /* Staggered animated cards */
+              <AnimatePresence mode="wait">
+                <motion.div
+                  className="contents"
+                  variants={cardContainerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  key={opportunities.map(o => o.id).join(",")}
+                >
+                  {opportunities.map((opp) => (
+                    <motion.div key={opp.id} variants={cardVariants}>
+                      <OpportunityCardV2
+                        opportunity={opp}
+                        snapshot={snapshot}
+                        onClick={() => handleCardClick(opp)}
+                        onPlatformClick={(platform) => handlePlatformClick(opp, platform)}
+                        isSelected={selectedOpportunity?.id === opp.id && isDrawerOpen}
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
             )}
           </div>
 
@@ -264,21 +335,21 @@ function getWeeklyInsight(opportunities: UIOpportunity[], state: string) {
 
   if (state === "not_generated_yet") {
     return {
-      message: "Run BrandBrain compile first to establish your brand context.",
+      message: "Complete your brand setup to unlock opportunity generation.",
       type: "nudge" as const,
     };
   }
 
   if (state === "insufficient_evidence") {
     return {
-      message: "Connect more sources to get better opportunity recommendations.",
+      message: "Add more sources to discover better opportunities for your brand.",
       type: "nudge" as const,
     };
   }
 
   if (state === "error") {
     return {
-      message: "Something went wrong. Try refreshing the page.",
+      message: "We hit a snag. Check the error details above for guidance.",
       type: "nudge" as const,
     };
   }
@@ -300,12 +371,230 @@ function getWeeklyInsight(opportunities: UIOpportunity[], state: string) {
 
 // --- Helper Components ---
 
+// Pre-onboarding guard - shows when BrandBrain hasn't been compiled yet
+function PreOnboardingGuard({ brandId }: { brandId: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="px-4 py-4 rounded-lg border bg-amber-500/10 border-amber-500/30"
+    >
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-[14px] font-semibold text-amber-400 mb-1">
+            Complete Brand Setup First
+          </h3>
+          <p className="text-[13px] text-amber-300/80 mb-3">
+            Before we can generate opportunities, you need to compile your BrandBrain.
+            This establishes your brand&apos;s voice, pillars, and target audience.
+          </p>
+          <Link
+            href={`/brands/${brandId}/onboarding`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-[13px] font-medium hover:bg-amber-600 transition-colors"
+          >
+            Go to Setup
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// Error banner with helpful guidance
+interface ErrorBannerProps {
+  title: string;
+  message: string;
+  onRetry?: () => void;
+  isRetrying?: boolean;
+}
+
+function ErrorBanner({ title, message, onRetry, isRetrying }: ErrorBannerProps) {
+  // Parse common error types for helpful messages
+  const getHelpfulMessage = (msg: string): { suggestion: string; isApiKeyIssue: boolean } => {
+    const lowerMsg = msg.toLowerCase();
+
+    if (lowerMsg.includes("api key") || lowerMsg.includes("apikey") || lowerMsg.includes("unauthorized") || lowerMsg.includes("401")) {
+      return {
+        suggestion: "Your API key might be invalid or expired. Check your settings to update it.",
+        isApiKeyIssue: true,
+      };
+    }
+
+    if (lowerMsg.includes("rate limit") || lowerMsg.includes("429") || lowerMsg.includes("too many requests")) {
+      return {
+        suggestion: "You've hit the API rate limit. Wait a few minutes before trying again.",
+        isApiKeyIssue: false,
+      };
+    }
+
+    if (lowerMsg.includes("timeout") || lowerMsg.includes("timed out")) {
+      return {
+        suggestion: "The request took too long. This usually resolves itself - try again in a moment.",
+        isApiKeyIssue: false,
+      };
+    }
+
+    if (lowerMsg.includes("network") || lowerMsg.includes("connection")) {
+      return {
+        suggestion: "Check your internet connection and try again.",
+        isApiKeyIssue: false,
+      };
+    }
+
+    return {
+      suggestion: "If this keeps happening, try refreshing the page or contact support.",
+      isApiKeyIssue: false,
+    };
+  };
+
+  const { suggestion, isApiKeyIssue } = getHelpfulMessage(message);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="px-4 py-3 rounded-lg border bg-red-500/10 border-red-500/30"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-[13px] font-medium text-red-400">{title}</p>
+            <p className="text-[12px] mt-1 text-red-300/80">{message}</p>
+            <p className="text-[12px] mt-2 text-red-300/60 italic">{suggestion}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {isApiKeyIssue && (
+            <Link
+              href="/settings"
+              className="px-3 py-1.5 rounded-md text-[12px] font-medium bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors"
+            >
+              Settings
+            </Link>
+          )}
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              disabled={isRetrying}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors disabled:opacity-50"
+            >
+              {isRetrying ? (
+                <>
+                  <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Retrying...
+                </>
+              ) : (
+                "Retry"
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// Error state with guidance (for meta.state === "error")
+function ErrorStateWithGuidance({ remediation, onRetry, isRetrying }: { remediation?: string | null; onRetry: () => void; isRetrying: boolean }) {
+  return (
+    <ErrorBanner
+      title="Error loading opportunities"
+      message={remediation || "An unexpected error occurred while generating opportunities."}
+      onRetry={onRetry}
+      isRetrying={isRetrying}
+    />
+  );
+}
+
+// Insufficient evidence guidance
+function InsufficientEvidenceGuide({ brandId }: { brandId: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="px-4 py-4 rounded-lg border bg-amber-500/10 border-amber-500/30"
+    >
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+          <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div className="flex-1">
+          <h3 className="text-[14px] font-semibold text-amber-400 mb-1">
+            Not Enough Data to Generate Opportunities
+          </h3>
+          <p className="text-[13px] text-amber-300/80 mb-2">
+            We couldn&apos;t find enough relevant content from your connected sources. Here&apos;s what you can do:
+          </p>
+          <ul className="text-[12px] text-amber-300/70 space-y-1 mb-3">
+            <li className="flex items-start gap-2">
+              <span className="text-amber-400">•</span>
+              Connect more social media accounts or websites
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-400">•</span>
+              Broaden your content pillars to capture more trends
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-amber-400">•</span>
+              Ensure your sources have recent, active content
+            </li>
+          </ul>
+          <Link
+            href={`/brands/${brandId}/onboarding`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-[13px] font-medium hover:bg-amber-600 transition-colors"
+          >
+            Update Sources
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// Skeleton grid for loading state
+function SkeletonGrid({ count }: { count: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: i * 0.05 }}
+        >
+          <OpportunityCardSkeleton />
+        </motion.div>
+      ))}
+    </>
+  );
+}
+
 // Regenerate Button Component
 interface RegenerateButtonProps {
   onRegenerate: () => void;
   isRegenerating: boolean;
   isPolling: boolean;
   currentState: string;
+  disabled?: boolean;
 }
 
 function RegenerateButton({
@@ -313,8 +602,9 @@ function RegenerateButton({
   isRegenerating,
   isPolling,
   currentState,
+  disabled = false,
 }: RegenerateButtonProps) {
-  const isDisabled = isRegenerating || isPolling || currentState === "generating";
+  const isDisabled = disabled || isRegenerating || isPolling || currentState === "generating";
   const isLoading = isRegenerating || isPolling || currentState === "generating";
 
   return (
@@ -330,6 +620,7 @@ function RegenerateButton({
         }
       `}
       aria-label={isLoading ? "Regenerating opportunities" : "Regenerate opportunities"}
+      title={disabled && currentState === "not_generated_yet" ? "Complete brand setup first" : undefined}
     >
       {isLoading ? (
         <>
@@ -354,94 +645,60 @@ function RegenerateButton({
 interface BoardStateIndicatorProps {
   state: string;
   remediation?: string | null;
-  onRetry?: () => void;
-  isRetrying?: boolean;
+  progressStage?: string | null;
+  progressDetail?: string | null;
 }
 
-function BoardStateIndicator({ state, remediation, onRetry, isRetrying }: BoardStateIndicatorProps) {
-  const stateConfig: Record<string, { label: string; className: string }> = {
-    generating: {
-      label: "Generating opportunities...",
-      className: "bg-kairo-accent-500/10 border-kairo-accent-500/30 text-kairo-accent-400",
-    },
-    not_generated_yet: {
-      label: "No opportunities yet",
-      className: "bg-kairo-bg-elevated border-kairo-border-subtle text-kairo-fg-muted",
-    },
-    insufficient_evidence: {
-      label: "Insufficient evidence",
-      className: "bg-amber-500/10 border-amber-500/30 text-amber-400",
-    },
-    error: {
-      label: "Error loading opportunities",
-      className: "bg-red-500/10 border-red-500/30 text-red-400",
-    },
-  };
+// Phase 3: Human-readable labels for progress stages
+const progressStageLabels: Record<string, string> = {
+  pending: "Waiting to start...",
+  fetching_evidence: "Fetching evidence from social platforms...",
+  running_quality_gates: "Validating evidence quality...",
+  synthesizing: "Generating opportunities with AI...",
+  scoring: "Scoring and ranking opportunities...",
+  complete: "Generation complete!",
+};
 
-  const config = stateConfig[state];
-  if (!config) return null;
+function BoardStateIndicator({ state, progressStage, progressDetail }: BoardStateIndicatorProps) {
+  if (state !== "generating") return null;
+
+  const displayLabel = progressStage
+    ? progressStageLabels[progressStage] || "Generating opportunities..."
+    : "Generating opportunities...";
 
   return (
-    <div className={`px-4 py-3 rounded-lg border ${config.className}`}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          {state === "generating" && (
-            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="px-4 py-3 rounded-lg border bg-kairo-accent-500/10 border-kairo-accent-500/30"
+    >
+      <div className="flex items-center gap-3">
+        <svg className="animate-spin w-5 h-5 text-kairo-accent-400" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+        <div className="flex flex-col">
+          <span className="text-[13px] font-medium text-kairo-accent-400">{displayLabel}</span>
+          {progressDetail && (
+            <span className="text-[11px] text-kairo-accent-400/70 mt-0.5">{progressDetail}</span>
           )}
-          <span className="text-[13px] font-medium">{config.label}</span>
         </div>
-        {/* Retry button for error state */}
-        {state === "error" && onRetry && (
-          <button
-            onClick={onRetry}
-            disabled={isRetrying}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-red-500/20 hover:bg-red-500/30 text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isRetrying ? (
-              <>
-                <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Retrying...
-              </>
-            ) : (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Retry
-              </>
-            )}
-          </button>
-        )}
       </div>
-      {remediation && (
-        <p className="text-[12px] mt-1 opacity-80">{remediation}</p>
-      )}
-    </div>
+    </motion.div>
   );
 }
 
 interface EmptyOpportunitiesProps {
   state: string;
+  progressStage?: string | null;
+  progressDetail?: string | null;
+  brandId: string;
 }
 
-function EmptyOpportunities({ state }: EmptyOpportunitiesProps) {
+function EmptyOpportunities({ state, brandId }: EmptyOpportunitiesProps) {
+  // Don't show empty state during generation - we show skeletons instead
   if (state === "generating") {
-    return (
-      <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-        <svg className="animate-spin w-8 h-8 text-kairo-accent-500 mb-3" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-        <p className="text-[14px] text-kairo-fg-muted">Generating opportunities...</p>
-        <p className="text-[12px] text-kairo-fg-subtle mt-1">This can take a few minutes</p>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -452,11 +709,26 @@ function EmptyOpportunities({ state }: EmptyOpportunitiesProps) {
         </svg>
       </div>
       <p className="text-[14px] text-kairo-fg-muted">No opportunities available</p>
-      <p className="text-[12px] text-kairo-fg-subtle mt-1">
-        {state === "not_generated_yet"
-          ? "Run BrandBrain compile to generate opportunities"
-          : "Check back later for fresh opportunities"}
+      <p className="text-[12px] text-kairo-fg-subtle mt-1 max-w-xs">
+        {state === "not_generated_yet" ? (
+          <>Complete your brand setup to start generating opportunities.</>
+        ) : state === "insufficient_evidence" ? (
+          <>Add more sources to help us find relevant trends for your brand.</>
+        ) : (
+          <>Check back later for fresh opportunities.</>
+        )}
       </p>
+      {(state === "not_generated_yet" || state === "insufficient_evidence") && (
+        <Link
+          href={`/brands/${brandId}/onboarding`}
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-kairo-accent-500 text-white text-[13px] font-medium hover:bg-kairo-accent-600 transition-colors"
+        >
+          {state === "not_generated_yet" ? "Go to Setup" : "Update Sources"}
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
+      )}
     </div>
   );
 }

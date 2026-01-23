@@ -2,7 +2,7 @@
 // Concept Builder page - bridge between opportunity and package creation
 
 import { mockApi } from "@/lib/mockApi";
-import { api } from "@/lib/api";
+import { getLatestSnapshotServer } from "@/lib/api/server";
 import { transformBackendSnapshot } from "@/contracts";
 import { ConceptBuilderClient } from "./ConceptBuilderClient";
 
@@ -34,7 +34,7 @@ export default async function ConceptBuilderPage({
   // Fetch BrandBrain snapshot for guardrails (if available)
   let snapshot = null;
   try {
-    const backendSnapshot = await api.getLatestSnapshot(brandId);
+    const backendSnapshot = await getLatestSnapshotServer(brandId);
     snapshot = transformBackendSnapshot(backendSnapshot);
   } catch {
     // No snapshot available

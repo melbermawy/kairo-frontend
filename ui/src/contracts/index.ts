@@ -331,6 +331,28 @@ export const TodayBoardSchema = z.object({
 export type TodayBoard = z.infer<typeof TodayBoardSchema>;
 
 // ============================================
+// USER API KEYS (Phase 2: BYOK)
+// ============================================
+
+export const UserAPIKeysStatusSchema = z.object({
+  has_apify_token: z.boolean(),
+  has_openai_key: z.boolean(),
+  apify_last4: z.string().nullable(),
+  openai_last4: z.string().nullable(),
+});
+
+export type UserAPIKeysStatus = z.infer<typeof UserAPIKeysStatusSchema>;
+
+export const ValidateAPIKeysResponseSchema = z.object({
+  apify_valid: z.boolean().nullable(),
+  apify_error: z.string().nullable(),
+  openai_valid: z.boolean().nullable(),
+  openai_error: z.string().nullable(),
+});
+
+export type ValidateAPIKeysResponse = z.infer<typeof ValidateAPIKeysResponseSchema>;
+
+// ============================================
 // VALIDATION HELPERS
 // ============================================
 

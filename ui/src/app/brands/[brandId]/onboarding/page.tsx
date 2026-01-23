@@ -1,7 +1,7 @@
 // app/brands/[brandId]/onboarding/page.tsx
 // Server shell for onboarding wizard
 
-import { api } from "@/lib/api";
+import { getOnboardingBootstrapServer } from "@/lib/api/server";
 import { OnboardingWizardClient } from "@/components/onboarding";
 
 interface OnboardingPageProps {
@@ -11,8 +11,8 @@ interface OnboardingPageProps {
 export default async function OnboardingPage({ params }: OnboardingPageProps) {
   const { brandId } = await params;
 
-  // Use bootstrap for combined fetch (will use single endpoint when backend supports it)
-  const { brand, onboarding, sources } = await api.getOnboardingBootstrap(brandId);
+  // Use server-side bootstrap for combined fetch
+  const { brand, onboarding, sources } = await getOnboardingBootstrapServer(brandId);
 
   return (
     <OnboardingWizardClient

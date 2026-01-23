@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { BrandSidebar } from "./BrandSidebar";
 import { TopBar } from "./TopBar";
+import { DemoModeBanner } from "./DemoModeBanner";
 import { getSectionFromPath, getSectionLabel } from "./navigation";
-import { api } from "@/lib/api";
 import type { BrandCore } from "@/contracts";
 import { KairoChatChrome } from "@/components/chat";
 
@@ -139,6 +139,9 @@ export function AppShell({ brandId, initialBrands, children }: AppShellProps) {
         style={{ paddingTop: HEADER_HEIGHT }}
       >
         <div className="flex-1 md:ml-[240px]">
+          {/* Demo Mode Banner - shows when user hasn't configured API keys */}
+          <DemoModeBanner />
+
           <KairoChatChrome
             brandName={brandName}
             section={sectionLabel}

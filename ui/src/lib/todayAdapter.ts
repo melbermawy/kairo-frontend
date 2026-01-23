@@ -86,6 +86,9 @@ export interface UITodayBoardMeta {
   jobId: string | null;
   opportunityCount: number;
   cacheHit: boolean;
+  // Phase 3: Progress tracking for UI indicators
+  progressStage: string | null;
+  progressDetail: string | null;
   // Degraded state info
   degraded: boolean;
   remediation: string | null;
@@ -168,6 +171,9 @@ export function adaptTodayBoardMeta(dto: TodayBoardMetaDTO): UITodayBoardMeta {
     jobId: dto.job_id ?? null,
     opportunityCount: dto.opportunity_count || 0,
     cacheHit: dto.cache_hit || false,
+    // Phase 3: Progress tracking for UI indicators
+    progressStage: dto.progress_stage ?? null,
+    progressDetail: dto.progress_detail ?? null,
     degraded: dto.degraded || false,
     remediation: dto.remediation ?? null,
     notes: dto.notes || [],

@@ -1,5 +1,5 @@
 import { TodayBoardClient } from "./TodayBoardClient";
-import { realApi } from "@/lib/api/client";
+import { getTodayBoardServer } from "@/lib/api/server";
 import { adaptTodayBoard } from "@/lib/todayAdapter";
 
 interface TodayPageProps {
@@ -9,9 +9,8 @@ interface TodayPageProps {
 export default async function TodayPage({ params }: TodayPageProps) {
   const { brandId } = await params;
 
-  // Fetch TodayBoard from real backend API
-  // Phase 1: Single GET call, no polling, no regenerate
-  const backendBoard = await realApi.getTodayBoard(brandId);
+  // Fetch TodayBoard from backend API (server-side)
+  const backendBoard = await getTodayBoardServer(brandId);
 
   // Adapt backend DTO to UI types
   const uiBoard = adaptTodayBoard(backendBoard);

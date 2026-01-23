@@ -6,6 +6,7 @@ import { z } from "zod";
 import { env, logApiBaseOnce } from "../env";
 import { timing } from "../debug/timing";
 import { diagnostics } from "../debug/diagnostics";
+import { createClient } from "../supabase/client";
 import {
   BrandCoreSchema,
   BrandOnboardingSchema,
@@ -18,6 +19,8 @@ import {
   SnapshotHistoryResponseSchema,
   BrandBrainEvidenceSchema,
   BrandBootstrapResponseSchema,
+  UserAPIKeysStatusSchema,
+  ValidateAPIKeysResponseSchema,
   type BrandCore,
   type BrandOnboarding,
   type SourceConnection,
@@ -30,6 +33,8 @@ import {
   type BrandBrainEvidence,
   type OverridesPatchRequest,
   type BrandBootstrapResponse,
+  type UserAPIKeysStatus,
+  type ValidateAPIKeysResponse,
 } from "@/contracts";
 
 // ============================================
@@ -78,6 +83,39 @@ export class ValidationError extends Error {
 // HTTP HELPERS
 // ============================================
 
+/**
+ * Get the current Supabase access token for authenticated API requests.
+ * This is for CLIENT-SIDE use only. For server components, use lib/api/server.ts.
+ * Returns null if not authenticated.
+ */
+async function getAuthToken(): Promise<string | null> {
+  // Only works client-side - server components should use lib/api/server.ts
+  if (typeof window === "undefined") {
+    console.warn("[AUTH] getAuthToken called on server - use lib/api/server.ts instead");
+    return null;
+  }
+
+  try {
+    const supabase = createClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("[AUTH] getSession error:", error);
+      return null;
+    }
+
+    if (!session) {
+      console.warn("[AUTH] No session found - user may not be logged in");
+      return null;
+    }
+
+    return session.access_token;
+  } catch (err) {
+    console.error("[AUTH] Error getting token:", err);
+    return null;
+  }
+}
+
 async function fetchApi<T>(
   endpoint: string,
   schema: z.ZodSchema<T>,
@@ -98,12 +136,16 @@ async function fetchApi<T>(
   timing.logApiStart(method, url);
   diagnostics.trackRequestStart(url);
 
+  // Get auth token for authenticated requests
+  const authToken = await getAuthToken();
+
   try {
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...options.headers,
       },
     });
@@ -184,12 +226,16 @@ async function fetchApiNoValidation(
   timing.logApiStart(method, url);
   diagnostics.trackRequestStart(url);
 
+  // Get auth token for authenticated requests
+  const authToken = await getAuthToken();
+
   try {
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...options.headers,
       },
     });
@@ -337,13 +383,17 @@ export const realApi = {
     brandId: string,
     forceRefresh = false
   ): Promise<CompileTriggerResponse> {
+    // Compile can take 30+ seconds in dev mode (sync execution)
+    // Production uses async with polling, so timeout doesn't matter there
+    const COMPILE_TIMEOUT_MS = 60000; // 60 seconds
     return fetchApi(
       `/api/brands/${brandId}/brandbrain/compile`,
       CompileTriggerResponseSchema,
       {
         method: "POST",
         body: JSON.stringify({ force_refresh: forceRefresh }),
-      }
+      },
+      COMPILE_TIMEOUT_MS
     );
   },
 
@@ -509,10 +559,52 @@ export const realApi = {
    */
   async triggerRegenerate(brandId: string): Promise<import("@/contracts/backendContracts").RegenerateResponseDTO> {
     const { RegenerateResponseDTOSchema } = await import("@/contracts/backendContracts");
+    // Regeneration can take 30+ seconds in dev mode (sync execution with Apify calls)
+    // Production uses async with polling, so timeout doesn't matter there
+    const REGENERATE_TIMEOUT_MS = 120000; // 120 seconds (Apify can be slow)
     return fetchApi(
       `/api/brands/${brandId}/today/regenerate/`,
       RegenerateResponseDTOSchema,
-      { method: "POST" }
+      { method: "POST" },
+      REGENERATE_TIMEOUT_MS
     );
+  },
+
+  // ============================================
+  // USER API KEYS (Phase 2: BYOK)
+  // ============================================
+
+  /**
+   * Get current API key status (whether keys are configured, last 4 chars).
+   * Does NOT return the actual keys.
+   */
+  async getApiKeysStatus(): Promise<UserAPIKeysStatus> {
+    return fetchApi("/api/user/api-keys/", UserAPIKeysStatusSchema);
+  },
+
+  /**
+   * Save API keys. Pass null to clear a key.
+   */
+  async saveApiKeys(data: {
+    apify_token?: string | null;
+    openai_key?: string | null;
+  }): Promise<UserAPIKeysStatus> {
+    return fetchApi("/api/user/api-keys/", UserAPIKeysStatusSchema, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Validate API keys against external services.
+   */
+  async validateApiKeys(data: {
+    apify_token?: string;
+    openai_key?: string;
+  }): Promise<ValidateAPIKeysResponse> {
+    return fetchApi("/api/user/api-keys/validate/", ValidateAPIKeysResponseSchema, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
   },
 };

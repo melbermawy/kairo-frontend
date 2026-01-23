@@ -156,6 +156,9 @@ export const TodayBoardMetaDTOSchema = z.object({
   source: z.string().optional().default("hero_f1_v2"),
   state: TodayBoardStateSchema,
   job_id: z.string().nullable().optional(),
+  // Phase 3: Progress tracking for UI indicators
+  progress_stage: z.string().nullable().optional(),
+  progress_detail: z.string().nullable().optional(),
   ready_reason: z.string().nullable().optional(),
   cache_hit: z.boolean().optional().default(false),
   cache_key: z.string().nullable().optional(),

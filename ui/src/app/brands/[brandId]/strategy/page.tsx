@@ -1,7 +1,7 @@
 // app/brands/[brandId]/strategy/page.tsx
 // BrandBrain page - snapshot viewer with overrides and provenance
 
-import { api } from "@/lib/api";
+import { getStrategyBootstrapServer } from "@/lib/api/server";
 import { BrandBrainClient } from "@/components/brandbrain";
 import { transformBackendSnapshot } from "@/contracts";
 
@@ -12,8 +12,8 @@ interface StrategyPageProps {
 export default async function StrategyPage({ params }: StrategyPageProps) {
   const { brandId } = await params;
 
-  // Use bootstrap for combined fetch (will use single endpoint when backend supports it)
-  const { brand, snapshot: backendSnapshot, overrides } = await api.getStrategyBootstrap(brandId);
+  // Use server-side bootstrap for combined fetch
+  const { brand, snapshot: backendSnapshot, overrides } = await getStrategyBootstrapServer(brandId);
 
   // Transform backend snapshot format to frontend format
   const snapshot = backendSnapshot ? transformBackendSnapshot(backendSnapshot) : null;
