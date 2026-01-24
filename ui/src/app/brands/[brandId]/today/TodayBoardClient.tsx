@@ -187,7 +187,7 @@ export function TodayBoardClient({
 
         {/* Insufficient evidence guidance */}
         {isInsufficientEvidence && (
-          <InsufficientEvidenceGuide brandId={brandId} />
+          <InsufficientEvidenceGuide brandId={brandId} remediation={meta.remediation} />
         )}
 
         {/* Generating state with skeleton loading */}
@@ -520,8 +520,14 @@ function ErrorStateWithGuidance({ remediation, onRetry, isRetrying }: { remediat
   );
 }
 
-// Insufficient evidence guidance
-function InsufficientEvidenceGuide({ brandId }: { brandId: string }) {
+// Insufficient evidence guidance - now uses backend remediation message
+function InsufficientEvidenceGuide({ brandId, remediation }: { brandId: string; remediation?: string | null }) {
+  // Parse remediation to detect if it mentions specific issues
+  const remediationLower = (remediation || "").toLowerCase();
+  const isApifyIssue = remediationLower.includes("apify") || remediationLower.includes("credit");
+  const isStaleContent = remediationLower.includes("older than") || remediationLower.includes("stale");
+  const isNoText = remediationLower.includes("text") || remediationLower.includes("captions");
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -538,32 +544,39 @@ function InsufficientEvidenceGuide({ brandId }: { brandId: string }) {
           <h3 className="text-[14px] font-semibold text-amber-400 mb-1">
             Not Enough Data to Generate Opportunities
           </h3>
-          <p className="text-[13px] text-amber-300/80 mb-2">
-            We couldn&apos;t find enough relevant content from your connected sources. Here&apos;s what you can do:
-          </p>
-          <ul className="text-[12px] text-amber-300/70 space-y-1 mb-3">
-            <li className="flex items-start gap-2">
-              <span className="text-amber-400">•</span>
-              Connect more social media accounts or websites
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-amber-400">•</span>
-              Broaden your content pillars to capture more trends
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-amber-400">•</span>
-              Ensure your sources have recent, active content
-            </li>
-          </ul>
-          <Link
-            href={`/brands/${brandId}/onboarding`}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-[13px] font-medium hover:bg-amber-600 transition-colors"
-          >
-            Update Sources
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
+          {/* Show backend remediation message if available */}
+          {remediation ? (
+            <p className="text-[13px] text-amber-300/80 mb-3">
+              {remediation}
+            </p>
+          ) : (
+            <p className="text-[13px] text-amber-300/80 mb-2">
+              We couldn&apos;t find enough relevant content from your connected sources.
+            </p>
+          )}
+          {/* Show contextual action button */}
+          {isApifyIssue ? (
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-[13px] font-medium hover:bg-amber-600 transition-colors"
+            >
+              Check API Settings
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </Link>
+          ) : (
+            <Link
+              href={`/brands/${brandId}/onboarding`}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-[13px] font-medium hover:bg-amber-600 transition-colors"
+            >
+              {isStaleContent ? "Update Sources" : isNoText ? "Check Sources" : "Update Sources"}
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
         </div>
       </div>
     </motion.div>
